@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from fpdf import FPDF
@@ -6,6 +6,8 @@ from PIL import Image, ImageDraw
 import io
 import tempfile
 import os
+
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -19,10 +21,19 @@ def serve_homepage():
 
 @app.post("/compress-image")
 async def compress_image(file: UploadFile = File(...), quality: int = 50):
-    image = Image.open(io.BytesIO(await file.read()))
-    image = image.convert("RGB")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image.")
 
-    # Create a temp file that works on any platform (local, Render, Vercel, etc.)
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Max size is 5MB.")
+
+    try:
+        image = Image.open(io.BytesIO(contents))
+        image = image.convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
+
     temp_path = os.path.join(tempfile.gettempdir(), "compressed_output.jpg")
     image.save(temp_path, format="JPEG", quality=quality, optimize=True)
 
@@ -31,6 +42,9 @@ async def compress_image(file: UploadFile = File(...), quality: int = 50):
 
 @app.post("/generate-pdf")
 def generate_pdf(title: str, body: str):
+    if not title.strip() or not body.strip():
+        raise HTTPException(status_code=400, detail="Title and body cannot be empty.")
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Helvetica", size=16)
@@ -46,8 +60,18 @@ def generate_pdf(title: str, body: str):
 
 @app.post("/convert-image-to-pdf")
 async def convert_image_to_pdf(file: UploadFile = File(...)):
-    image = Image.open(io.BytesIO(await file.read()))
-    image = image.convert("RGB")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image.")
+
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Max size is 5MB.")
+
+    try:
+        image = Image.open(io.BytesIO(contents))
+        image = image.convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
 
     temp_path = os.path.join(tempfile.gettempdir(), "converted.pdf")
     image.save(temp_path)
@@ -57,7 +81,18 @@ async def convert_image_to_pdf(file: UploadFile = File(...)):
 
 @app.post("/watermark-image")
 async def watermark_image(file: UploadFile = File(...), text: str = "SAMPLE"):
-    image = Image.open(io.BytesIO(await file.read())).convert("RGB")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image.")
+
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Max size is 5MB.")
+
+    try:
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
+
     draw = ImageDraw.Draw(image)
     draw.text((10, 10), text, fill=(255, 0, 0))
 
