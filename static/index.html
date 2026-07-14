@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Processing Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f0e1; /* beige */
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4a5d3a; /* dark olive */
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .tool {
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 22px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .tool h3 {
+            font-weight: 600;
+            margin-top: 0;
+        }
+        .olive {
+            border-color: #6b7a3f;
+        }
+        .olive h3 {
+            color: #6b7a3f;
+        }
+        .olive button {
+            background-color: #6b7a3f;
+            color: white;
+            border: none;
+        }
+        .blue {
+            border-color: #4a7c8c;
+        }
+        .blue h3 {
+            color: #4a7c8c;
+        }
+        .blue button {
+            background-color: #4a7c8c;
+            color: white;
+            border: none;
+        }
+        button {
+            font-family: 'Poppins', sans-serif;
+            padding: 8px 18px;
+            margin-top: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.15s ease;
+        }
+        button:hover {
+            opacity: 0.85;
+        }
+        .result { margin-top: 12px; }
+        .result img { max-width: 100%; border-radius: 6px; }
+        .result a {
+            display: inline-block;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 7px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+        }
+        textarea {
+            width: 100%;
+            padding: 7px;
+            margin-top: 6px;
+            height: 80px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Processing Platform</h1>
+
+    <div class="tool olive">
+        <h3>Compress Image</h3>
+        <input type="file" id="compressFile" accept="image/*">
+        <button onclick="compressImage()">Compress</button>
+        <div class="result" id="compressResult"></div>
+    </div>
+
+    <div class="tool blue">
+        <h3>Generate PDF</h3>
+        <input type="text" id="pdfTitle" placeholder="Title">
+        <textarea id="pdfBody" placeholder="Body text"></textarea>
+        <button onclick="generatePdf()">Generate PDF</button>
+        <div class="result" id="pdfResult"></div>
+    </div>
+
+    <div class="tool blue">
+        <h3>Convert Image to PDF</h3>
+        <input type="file" id="convertFile" accept="image/*">
+        <button onclick="convertImage()">Convert</button>
+        <div class="result" id="convertResult"></div>
+    </div>
+
+    <div class="tool olive">
+        <h3>Watermark Image</h3>
+        <input type="file" id="watermarkFile" accept="image/*">
+        <input type="text" id="watermarkText" placeholder="Watermark text (e.g. CONFIDENTIAL)">
+        <button onclick="watermarkImage()">Add Watermark</button>
+        <div class="result" id="watermarkResult"></div>
+    </div>
+
+    <script>
+        async function compressImage() {
+            const fileInput = document.getElementById('compressFile');
+            const resultDiv = document.getElementById('compressResult');
+            if (!fileInput.files[0]) { resultDiv.textContent = "Please choose a file first."; return; }
+            resultDiv.textContent = "Processing...";
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch("/compress-image?quality=50", { method: "POST", body: formData });
+            if (!response.ok) { resultDiv.textContent = "Error: " + response.status; return; }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            resultDiv.innerHTML = `<img src="${url}"><br><a href="${url}" download="compressed.jpg">Download</a>`;
+        }
+
+        async function generatePdf() {
+            const title = document.getElementById('pdfTitle').value;
+            const body = document.getElementById('pdfBody').value;
+            const resultDiv = document.getElementById('pdfResult');
+            resultDiv.textContent = "Processing...";
+
+            const params = new URLSearchParams({ title, body });
+            const response = await fetch("/generate-pdf?" + params.toString(), { method: "POST" });
+            if (!response.ok) { resultDiv.textContent = "Error: " + response.status; return; }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            resultDiv.innerHTML = `<a href="${url}" download="generated.pdf">Download PDF</a>`;
+        }
+
+        async function convertImage() {
+            const fileInput = document.getElementById('convertFile');
+            const resultDiv = document.getElementById('convertResult');
+            if (!fileInput.files[0]) { resultDiv.textContent = "Please choose a file first."; return; }
+            resultDiv.textContent = "Processing...";
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch("/convert-image-to-pdf", { method: "POST", body: formData });
+            if (!response.ok) { resultDiv.textContent = "Error: " + response.status; return; }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            resultDiv.innerHTML = `<a href="${url}" download="converted.pdf">Download PDF</a>`;
+        }
+
+        async function watermarkImage() {
+            const fileInput = document.getElementById('watermarkFile');
+            const text = document.getElementById('watermarkText').value || "SAMPLE";
+            const resultDiv = document.getElementById('watermarkResult');
+            if (!fileInput.files[0]) { resultDiv.textContent = "Please choose a file first."; return; }
+            resultDiv.textContent = "Processing...";
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch("/watermark-image?text=" + encodeURIComponent(text), { method: "POST", body: formData });
+            if (!response.ok) { resultDiv.textContent = "Error: " + response.status; return; }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            resultDiv.innerHTML = `<img src="${url}"><br><a href="${url}" download="watermarked.jpg">Download</a>`;
+        }
+    </script>
+</body>
+</html>
