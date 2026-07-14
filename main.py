@@ -3,14 +3,23 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from fpdf import FPDF
 from PIL import Image, ImageDraw
+from fastapi import Request
+from fastapi.responses import JSONResponse
 import io
 import tempfile
 import os
+
 
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Something went wrong on our end. Please try again."},
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
