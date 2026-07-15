@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fpdf import FPDF
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import io
 import tempfile
 import os
@@ -114,7 +114,29 @@ async def watermark_image(request: Request, file: UploadFile = File(...), text: 
         raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
 
     draw = ImageDraw.Draw(image)
-    draw.text((10, 10), text, fill=(255, 0, 0))
+
+    # Scale font size relative to image width, so it looks right on any size image
+    font_size = max(21, image.width // 11)
+    font = None
+    font_paths = ["arial.ttf", "Arial.ttf", "C:\\Windows\\Fonts\\arial.ttf", "DejaVuSans-Bold.ttf"]
+    for path in font_paths:
+        try:
+            font = ImageFont.truetype(path, font_size)
+            break
+        except Exception:
+            continue
+    if font is None:
+        font = ImageFont.load_default()
+
+    position = (20, 20)
+    draw.text(
+        position,
+        text,
+        font=font,
+        fill=(255, 255, 255),        # white text
+        stroke_width=3,
+        stroke_fill=(0, 0, 0),       # black outline
+    )
 
     temp_path = os.path.join(tempfile.gettempdir(), "watermarked.jpg")
     image.save(temp_path, format="JPEG")
