@@ -35,9 +35,15 @@
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
+    display: none;
   }
+  body.home-active .bg-decor { display: block; }
   .bg-decor svg { width: 100%; height: 100%; }
-  .bg-decor .icon-group { opacity: 0.28; }
+  .bg-decor .icon-group { opacity: 0.2; }
+
+  @media (max-width: 720px) {
+    .bg-decor { display: none !important; }
+  }
   .bg-decor .icon-group text {
     font-family: 'IBM Plex Mono', monospace;
     letter-spacing: 2px;
@@ -266,12 +272,14 @@
     gap: 16px;
   }
   .tool-card {
-    background: rgba(255,255,255,0.04);
+    background: rgba(13,11,26,0.72);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     padding: 18px 20px;
     cursor: pointer;
     transition: border-color 0.2s ease, transform 0.2s ease;
+    position: relative;
+    z-index: 1;
   }
   .tool-card:hover {
     border-color: var(--teal);
@@ -435,7 +443,7 @@
   }
 </style>
 </head>
-<body>
+<body class="home-active">
 
 <div class="bg-decor">
   <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
@@ -714,6 +722,7 @@
     const navItem = document.querySelector('.nav-item[data-panel="' + panelName + '"]');
     if (navItem) navItem.classList.add('active');
     document.getElementById('panel-' + panelName).classList.add('active');
+    document.body.classList.toggle('home-active', panelName === 'home');
     updateHelperPanel(panelName);
     closeSidebar();
   }
