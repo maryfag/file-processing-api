@@ -4,3 +4,6 @@ python-multipart
 pillow
 fpdf2
 slowapi
+python-dotenv
+python-docx
+python-pptx

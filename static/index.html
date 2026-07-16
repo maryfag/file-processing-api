@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>File Desk</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
@@ -115,7 +116,7 @@
   .panel.active { display: block; }
 
   label { display:block; font-size: 13px; font-weight: 500; margin: 14px 0 6px; color: var(--muted); }
-  input[type="text"], input[type="number"], textarea, input[type="file"] {
+  input[type="text"], input[type="number"], textarea, input[type="file"], select {
     width: 100%;
     padding: 9px 12px;
     border: 1px solid rgba(255,255,255,0.15);
@@ -125,8 +126,44 @@
     font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
   }
+  select option { background: var(--bg-bottom); color: var(--text); }
   input::placeholder, textarea::placeholder { color: rgba(243,239,255,0.35); }
   textarea { min-height: 90px; resize: vertical; }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--teal);
+    margin-top: 4px;
+  }
+  .range-row { display: flex; justify-content: space-between; align-items: center; }
+  .range-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--teal);
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .mode-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    border-color: var(--teal);
+    color: var(--teal);
+    box-shadow: 0 0 12px rgba(34,211,199,0.4);
+  }
 
   button.action {
     margin-top: 18px;
@@ -144,6 +181,11 @@
   button.action:hover {
     box-shadow: 0 0 24px rgba(34,211,199,0.7);
     transform: translateY(-1px);
+  }
+  button.action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 
   .status-tag {
@@ -175,46 +217,40 @@
     color: var(--teal);
     text-decoration: underline;
   }
+  .error-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--coral);
+  }
 
-  /* Settings modal */
-  .overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(13,11,26,0.75);
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-  .overlay.active { display: flex; }
-  .settings-box {
-    background: var(--bg-bottom);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 24px 28px;
-    width: 340px;
-  }
-  .settings-box h2 { font-size:18px; margin:0 0 6px; }
-  .settings-box p { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+  /* API key panel */
   .key-box {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     word-break: break-all;
-    color: var(--muted);
+    color: var(--teal);
+    margin-top: 14px;
+    display: none;
   }
-  .close-btn {
-    margin-top: 16px;
+  .copy-btn {
+    margin-left: 10px;
     background: none;
     border: 1px solid rgba(255,255,255,0.2);
-    color: var(--text);
-    border-radius: 20px;
-    padding: 8px 16px;
+    color: var(--muted);
+    border-radius: 14px;
+    padding: 3px 10px;
+    font-size: 11px;
     cursor: pointer;
-    font-size: 13px;
+  }
+  .key-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.5;
   }
 </style>
 </head>
@@ -224,19 +260,20 @@
   <div class="brand">FILE DESK</div>
   <div class="nav-section-label">TOOLS</div>
   <div class="nav-item active" data-panel="compress">Compress image</div>
-  <div class="nav-item" data-panel="pdf">Generate PDF</div>
+  <div class="nav-item" data-panel="docpdf">Document to PDF</div>
   <div class="nav-item" data-panel="convert">Convert to PDF</div>
   <div class="nav-item" data-panel="watermark">Watermark image</div>
   <div class="sidebar-bottom">
-    <div class="nav-item" id="settingsBtn">Settings</div>
+    <div class="nav-item" data-panel="apikey">Get your API key</div>
   </div>
 </div>
 
 <div class="main">
-  <div class="manifest-header">FILE DESK // CONSOLE</div>
+  <div class="manifest-header">FILE DESK</div>
   <h1>File processing desk</h1>
-  <div class="subtitle">Every file inspected, converted, and cleared for delivery.</div>
+  <div class="subtitle">Every file inspected and converted. </div>
 
+  <!-- Compress image -->
   <div class="panel active" id="panel-compress">
     <div class="status-tag" id="status-compress"></div>
     <label>Image file</label>
@@ -247,16 +284,16 @@
     <div id="compress-result"></div>
   </div>
 
-  <div class="panel" id="panel-pdf">
-    <div class="status-tag" id="status-pdf"></div>
-    <label>Title</label>
-    <input type="text" id="pdf-title" placeholder="Document title">
-    <label>Body</label>
-    <textarea id="pdf-body" placeholder="Document content"></textarea>
-    <button class="action" onclick="generatePdf()">Process file</button>
-    <div id="pdf-result"></div>
+  <!-- Document to PDF -->
+  <div class="panel" id="panel-docpdf">
+    <div class="status-tag" id="status-docpdf"></div>
+    <label>Document file (.docx, .pptx, or .txt)</label>
+    <input type="file" id="docpdf-file" accept=".docx,.pptx,.txt">
+    <button class="action" onclick="convertDocumentToPdf()">Process file</button>
+    <div id="docpdf-result"></div>
   </div>
 
+  <!-- Convert image to PDF -->
   <div class="panel" id="panel-convert">
     <div class="status-tag" id="status-convert"></div>
     <label>Image file</label>
@@ -265,23 +302,63 @@
     <div id="convert-result"></div>
   </div>
 
+  <!-- Watermark image -->
   <div class="panel" id="panel-watermark">
     <div class="status-tag" id="status-watermark"></div>
     <label>Image file</label>
     <input type="file" id="watermark-file" accept="image/*">
+
     <label>Watermark text</label>
     <input type="text" id="watermark-text" value="SAMPLE">
+
+    <label>Mode</label>
+    <div class="mode-toggle">
+      <div class="mode-btn active" id="mode-single" onclick="setWatermarkMode('single')">Single placement</div>
+      <div class="mode-btn" id="mode-tiled" onclick="setWatermarkMode('tiled')">Tiled pattern</div>
+    </div>
+
+    <div id="watermark-position-row">
+      <label>Position</label>
+      <select id="watermark-position">
+        <option value="bottom-right">Bottom right</option>
+        <option value="bottom-left">Bottom left</option>
+        <option value="top-right">Top right</option>
+        <option value="top-left">Top left</option>
+        <option value="center">Center</option>
+      </select>
+    </div>
+
+    <div id="watermark-angle-row" style="display:none;">
+      <label>Angle</label>
+      <div class="range-row">
+        <input type="range" id="watermark-angle" min="-90" max="90" value="-30" oninput="document.getElementById('angle-value').textContent = this.value + '°'">
+        <span class="range-value" id="angle-value">-30°</span>
+      </div>
+    </div>
+
+    <label>Opacity</label>
+    <div class="range-row">
+      <input type="range" id="watermark-opacity" min="0" max="255" value="180" oninput="document.getElementById('opacity-value').textContent = this.value">
+      <span class="range-value" id="opacity-value">180</span>
+    </div>
+
     <button class="action" onclick="watermarkImage()">Process file</button>
     <div id="watermark-result"></div>
   </div>
-</div>
 
-<div class="overlay" id="settingsOverlay">
-  <div class="settings-box">
-    <h2>Settings</h2>
-    <p>Your API key lets other apps call this service directly.</p>
-    <div class="key-box">Coming soon — key generation isn't wired up yet.</div>
-    <button class="close-btn" onclick="closeSettings()">Close</button>
+  <!-- Get API key -->
+  <div class="panel" id="panel-apikey">
+    <label>Email (used to log your key issuance)</label>
+    <input type="email" id="apikey-email" placeholder="you@example.com">
+    <button class="action" onclick="generateApiKey()">Generate key</button>
+    <div class="key-box" id="apikey-box">
+      <span id="apikey-value"></span>
+      <button class="copy-btn" onclick="copyApiKey()">Copy</button>
+    </div>
+    <div class="key-note">
+      Keys are for use in your own external projects. Endpoints on this site do not currently require a key to function.
+    </div>
+    <div id="apikey-error"></div>
   </div>
 </div>
 
@@ -294,13 +371,6 @@
       document.getElementById('panel-' + item.dataset.panel).classList.add('active');
     });
   });
-
-  document.getElementById('settingsBtn').addEventListener('click', () => {
-    document.getElementById('settingsOverlay').classList.add('active');
-  });
-  function closeSettings() {
-    document.getElementById('settingsOverlay').classList.remove('active');
-  }
 
   function showStatus(id, ok) {
     const el = document.getElementById(id);
@@ -315,6 +385,19 @@
       `<a class="result-link" href="${url}" download="${filename}">Download ${filename}</a>`;
   }
 
+  async function extractErrorDetail(res) {
+    try {
+      const data = await res.json();
+      return data.detail || 'Something went wrong.';
+    } catch {
+      return 'Something went wrong.';
+    }
+  }
+
+  function showError(containerId, message) {
+    document.getElementById(containerId).innerHTML = `<div class="error-msg">${message}</div>`;
+  }
+
   async function compressImage() {
     const fileInput = document.getElementById('compress-file');
     const quality = document.getElementById('compress-quality').value;
@@ -323,26 +406,30 @@
     formData.append('file', fileInput.files[0]);
     try {
       const res = await fetch(`/compress-image?quality=${quality}`, { method: 'POST', body: formData });
-      if (!res.ok) throw new Error();
+      if (!res.ok) { showStatus('status-compress', false); showError('compress-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-compress', true);
       showResult('compress-result', blob, 'compressed.jpg');
     } catch {
       showStatus('status-compress', false);
+      showError('compress-result', 'Network error. Please try again.');
     }
   }
 
-  async function generatePdf() {
-    const title = document.getElementById('pdf-title').value;
-    const body = document.getElementById('pdf-body').value;
+  async function convertDocumentToPdf() {
+    const fileInput = document.getElementById('docpdf-file');
+    if (!fileInput.files[0]) return;
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
     try {
-      const res = await fetch(`/generate-pdf?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`, { method: 'POST' });
-      if (!res.ok) throw new Error();
+      const res = await fetch('/convert-document-to-pdf', { method: 'POST', body: formData });
+      if (!res.ok) { showStatus('status-docpdf', false); showError('docpdf-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
-      showStatus('status-pdf', true);
-      showResult('pdf-result', blob, 'generated.pdf');
+      showStatus('status-docpdf', true);
+      showResult('docpdf-result', blob, 'converted_document.pdf');
     } catch {
-      showStatus('status-pdf', false);
+      showStatus('status-docpdf', false);
+      showError('docpdf-result', 'Network error. Please try again.');
     }
   }
 
@@ -353,30 +440,68 @@
     formData.append('file', fileInput.files[0]);
     try {
       const res = await fetch('/convert-image-to-pdf', { method: 'POST', body: formData });
-      if (!res.ok) throw new Error();
+      if (!res.ok) { showStatus('status-convert', false); showError('convert-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-convert', true);
       showResult('convert-result', blob, 'converted.pdf');
     } catch {
       showStatus('status-convert', false);
+      showError('convert-result', 'Network error. Please try again.');
     }
+  }
+
+  let watermarkMode = 'single';
+  function setWatermarkMode(mode) {
+    watermarkMode = mode;
+    document.getElementById('mode-single').classList.toggle('active', mode === 'single');
+    document.getElementById('mode-tiled').classList.toggle('active', mode === 'tiled');
+    document.getElementById('watermark-position-row').style.display = mode === 'single' ? 'block' : 'none';
+    document.getElementById('watermark-angle-row').style.display = mode === 'tiled' ? 'block' : 'none';
   }
 
   async function watermarkImage() {
     const fileInput = document.getElementById('watermark-file');
     const text = document.getElementById('watermark-text').value;
+    const opacity = document.getElementById('watermark-opacity').value;
+    const position = document.getElementById('watermark-position').value;
+    const angle = document.getElementById('watermark-angle').value;
     if (!fileInput.files[0]) return;
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
+    const params = new URLSearchParams({
+      text, mode: watermarkMode, opacity, position, angle
+    });
     try {
-      const res = await fetch(`/watermark-image?text=${encodeURIComponent(text)}`, { method: 'POST', body: formData });
-      if (!res.ok) throw new Error();
+      const res = await fetch(`/watermark-image?${params.toString()}`, { method: 'POST', body: formData });
+      if (!res.ok) { showStatus('status-watermark', false); showError('watermark-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-watermark', true);
       showResult('watermark-result', blob, 'watermarked.jpg');
     } catch {
       showStatus('status-watermark', false);
+      showError('watermark-result', 'Network error. Please try again.');
     }
+  }
+
+  async function generateApiKey() {
+    const email = document.getElementById('apikey-email').value;
+    const errorBox = document.getElementById('apikey-error');
+    const keyBox = document.getElementById('apikey-box');
+    errorBox.innerHTML = '';
+    try {
+      const res = await fetch(`/generate-key?email=${encodeURIComponent(email)}`, { method: 'POST' });
+      if (!res.ok) { showError('apikey-error', await extractErrorDetail(res)); return; }
+      const data = await res.json();
+      document.getElementById('apikey-value').textContent = data.api_key;
+      keyBox.style.display = 'block';
+    } catch {
+      showError('apikey-error', 'Network error. Please try again.');
+    }
+  }
+
+  function copyApiKey() {
+    const key = document.getElementById('apikey-value').textContent;
+    navigator.clipboard.writeText(key);
   }
 </script>
 
