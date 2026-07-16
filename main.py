@@ -13,7 +13,11 @@ from PIL import Image, ImageDraw, ImageFont
 import docx
 from docx.table import Table as DocxTable
 from docx.text.paragraph import Paragraph as DocxParagraph
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
 from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.text import PP_ALIGN
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -85,6 +89,109 @@ def heading_size(level: int) -> int:
     return {1: 18, 2: 16, 3: 14}.get(level, 12)
 
 
+def docx_align(paragraph) -> str:
+    mapping = {
+        WD_ALIGN_PARAGRAPH.CENTER: "C",
+        WD_ALIGN_PARAGRAPH.RIGHT: "R",
+        WD_ALIGN_PARAGRAPH.JUSTIFY: "J",
+    }
+    return mapping.get(paragraph.alignment, "L")
+
+
+def pptx_align(paragraph) -> str:
+    """PowerPoint uses its own PP_ALIGN enum — distinct from docx's
+    WD_ALIGN_PARAGRAPH, even though the values look similar."""
+    mapping = {
+        PP_ALIGN.CENTER: "C",
+        PP_ALIGN.RIGHT: "R",
+        PP_ALIGN.JUSTIFY: "J",
+    }
+    try:
+        return mapping.get(paragraph.alignment, "L")
+    except Exception:
+        return "L"
+
+
+def run_color(run):
+    """Returns (r,g,b) if the run has an explicit color set, else None."""
+    try:
+        color = run.font.color
+        if color and color.type is not None and color.rgb is not None:
+            rgb = color.rgb
+            return (rgb[0], rgb[1], rgb[2])
+    except Exception:
+        pass
+    return None
+
+
+def emu_to_mm(emu) -> float:
+    return float(emu) / 36000.0
+
+
+def length_to_mm(length) -> float:
+    """Convert a docx Length (EMU-based) to millimeters."""
+    if length is None:
+        return 0.0
+    return emu_to_mm(length)
+
+
+def extract_docx_paragraph_images(para: DocxParagraph, document):
+    """Finds any inline images referenced inside a paragraph's runs and
+    returns a list of raw image bytes, in the order they appear."""
+    images = []
+    for run in para.runs:
+        blips = run._element.findall(".//" + qn("a:blip"))
+        for blip in blips:
+            r_id = blip.get(qn("r:embed"))
+            if not r_id:
+                continue
+            try:
+                image_part = document.part.related_parts[r_id]
+                images.append(image_part.blob)
+            except Exception:
+                continue
+    return images
+
+
+def draw_pdf_image(pdf: FPDF, image_bytes: bytes, max_width_mm: float):
+    """Places an image at the current cursor position, scaled to fit
+    max_width_mm while keeping its aspect ratio, then advances the cursor."""
+    try:
+        pil_img = Image.open(io.BytesIO(image_bytes))
+        px_w, px_h = pil_img.size
+    except Exception:
+        return
+    width_mm = min(max_width_mm, (px_w / 96.0) * 25.4)
+    height_mm = width_mm * (px_h / px_w) if px_w else 0
+    if pdf.get_y() + height_mm > pdf.h - pdf.b_margin:
+        pdf.add_page()
+    x = pdf.get_x()
+    y = pdf.get_y()
+    try:
+        pdf.image(io.BytesIO(image_bytes), x=x, y=y, w=width_mm, h=height_mm)
+        pdf.set_y(y + height_mm + 4)
+    except Exception:
+        pass
+
+
+def cell_shading_color(cell):
+    """Reads a table cell's background fill color (w:shd) if one is set."""
+    try:
+        tc_pr = cell._tc.find(qn("w:tcPr"))
+        if tc_pr is None:
+            return None
+        shd = tc_pr.find(qn("w:shd"))
+        if shd is None:
+            return None
+        fill = shd.get(qn("w:fill"))
+        if not fill or fill.lower() == "auto":
+            return None
+        fill = fill.lstrip("#")
+        return tuple(int(fill[i:i + 2], 16) for i in (0, 2, 4))
+    except Exception:
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Compress image (unchanged)
 # ---------------------------------------------------------------------------
@@ -113,42 +220,95 @@ async def compress_image(request: Request, file: UploadFile = File(...), quality
 # slide for .pptx; plain paragraphs for .txt)
 # ---------------------------------------------------------------------------
 
-def render_docx_paragraph(pdf: FPDF, para: DocxParagraph):
+def render_docx_paragraph(pdf: FPDF, para: DocxParagraph, document):
     style_name = para.style.name if para.style else ""
     level = heading_level(style_name)
     is_list = "list" in style_name.lower() or "bullet" in style_name.lower()
     text = para.text.strip()
-    if not text:
+
+    # Inline images live inside runs even when there's no text alongside them.
+    images = extract_docx_paragraph_images(para, document)
+
+    if not text and not images:
         return
 
-    indent = 6 if is_list else 0
+    align = docx_align(para)
+    base_indent = length_to_mm(para.paragraph_format.left_indent)
+    indent = max(base_indent, 6 if is_list else 0)
     pdf.set_x(pdf.l_margin + indent)
-    if is_list:
-        pdf.set_font("Helvetica", "", 12)
-        pdf.write(7, "-  ")
 
-    runs = para.runs if para.runs else None
-    if not runs:
-        size = heading_size(level) if level else 12
-        style = "B" if level else ""
-        pdf.set_font("Helvetica", style, size)
-        pdf.write(9 if level else 7, sanitize_text(text))
-    else:
-        for run in runs:
-            run_text = sanitize_text(run.text)
-            if not run_text:
-                continue
-            style = ""
-            if run.bold or level:
-                style += "B"
-            if run.italic:
-                style += "I"
-            if run.underline:
-                style += "U"
+    space_before = length_to_mm(para.paragraph_format.space_before)
+    if space_before:
+        pdf.ln(min(space_before, 8))
+
+    if text:
+        if is_list:
+            pdf.set_font("Helvetica", "", 12)
+            pdf.write(7, "-  ")
+
+        runs = para.runs if para.runs else None
+        line_height = 9 if level else 7
+
+        if not runs:
             size = heading_size(level) if level else 12
+            style = "B" if level else ""
             pdf.set_font("Helvetica", style, size)
-            pdf.write(9 if level else 7, run_text)
-    pdf.ln(10 if level else 7)
+            full_text = sanitize_text(text)
+            if align in ("C", "R", "J"):
+                usable_width = pdf.w - pdf.l_margin - pdf.r_margin - indent
+                pdf.multi_cell(usable_width, line_height, full_text, align=align)
+            else:
+                pdf.write(line_height, full_text)
+                pdf.ln(line_height + (1 if level else 0))
+        else:
+            # Gather each run's own style first, so alignment and formatting
+            # can both be honored instead of one overriding the other.
+            run_specs = []
+            for run in runs:
+                run_text = sanitize_text(run.text)
+                if not run_text:
+                    continue
+                style = ""
+                if run.bold or level:
+                    style += "B"
+                if run.italic:
+                    style += "I"
+                if run.underline:
+                    style += "U"
+                size = heading_size(level) if level else 12
+                color = run_color(run)
+                run_specs.append((run_text, style, size, color))
+
+            if align in ("C", "R") and run_specs:
+                # write() always flows left-to-right, so for center/right we
+                # measure the full line first and offset the cursor before
+                # drawing each run — that way per-run bold/italic/color still
+                # comes through instead of being dropped for alignment's sake.
+                total_width = 0
+                for run_text, style, size, _ in run_specs:
+                    pdf.set_font("Helvetica", style, size)
+                    total_width += pdf.get_string_width(run_text)
+                usable_width = pdf.w - pdf.l_margin - pdf.r_margin - indent
+                offset = (usable_width - total_width) if align == "R" else (usable_width - total_width) / 2
+                pdf.set_x(pdf.l_margin + indent + max(offset, 0))
+            # Note: true justify (even word-spacing) across mixed-style runs
+            # isn't something fpdf2 supports directly, so justified paragraphs
+            # with multiple runs fall back to left flow here rather than
+            # losing bold/italic/color — a deliberate, documented trade-off.
+
+            for run_text, style, size, color in run_specs:
+                pdf.set_font("Helvetica", style, size)
+                if color:
+                    pdf.set_text_color(*color)
+                pdf.write(line_height, run_text)
+                if color:
+                    pdf.set_text_color(0, 0, 0)
+            pdf.ln(line_height + (1 if level else 0))
+
+    for image_bytes in images:
+        usable_width = pdf.w - pdf.l_margin - pdf.r_margin - indent
+        pdf.set_x(pdf.l_margin + indent)
+        draw_pdf_image(pdf, image_bytes, usable_width)
 
 
 def render_docx_table(pdf: FPDF, table: DocxTable):
@@ -167,7 +327,16 @@ def render_docx_table(pdf: FPDF, table: DocxTable):
             cell_text = sanitize_text(cell.text.strip())
             pdf.set_xy(x_start + i * col_width, y_start)
             pdf.set_font("Helvetica", "B" if is_header else "", 10)
-            pdf.multi_cell(col_width, row_height, cell_text, border=1)
+
+            fill = cell_shading_color(cell)
+            if fill:
+                pdf.set_fill_color(*fill)
+            elif is_header:
+                pdf.set_fill_color(230, 230, 230)
+            else:
+                pdf.set_fill_color(255, 255, 255)
+
+            pdf.multi_cell(col_width, row_height, cell_text, border=1, fill=True)
             if pdf.get_y() > max_y:
                 max_y = pdf.get_y()
         pdf.set_xy(x_start, max_y)
@@ -183,9 +352,9 @@ def build_pdf_from_docx(contents: bytes) -> FPDF:
     found_any = False
     for block in iter_block_items(document):
         if isinstance(block, DocxParagraph):
-            if block.text.strip():
+            if block.text.strip() or extract_docx_paragraph_images(block, document):
                 found_any = True
-            render_docx_paragraph(pdf, block)
+            render_docx_paragraph(pdf, block, document)
         elif isinstance(block, DocxTable):
             if block.rows:
                 found_any = True
@@ -198,34 +367,75 @@ def build_pdf_from_docx(contents: bytes) -> FPDF:
 
 def build_pdf_from_pptx(contents: bytes) -> FPDF:
     prs = Presentation(io.BytesIO(contents))
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    slide_w_mm = emu_to_mm(prs.slide_width)
+    slide_h_mm = emu_to_mm(prs.slide_height)
+
+    # NOTE: format=(w,h) is used exactly as given only when orientation="P" —
+    # passing "L" here would make fpdf2 swap the two values, which would
+    # corrupt every shape's x/y position on the far more common landscape slides.
+    pdf = FPDF(orientation="P", unit="mm", format=(slide_w_mm, slide_h_mm))
+    pdf.set_auto_page_break(auto=False)
 
     found_any = False
-    for i, slide in enumerate(prs.slides, start=1):
+    for slide in prs.slides:
         pdf.add_page()
-        pdf.set_font("Helvetica", "B", 16)
-        pdf.multi_cell(0, 10, sanitize_text(f"Slide {i}"))
-        pdf.ln(2)
 
-        title_shape = slide.shapes.title
-        for shape in slide.shapes:
+        # Sort so pictures are drawn first and text sits on top of them.
+        shapes = sorted(slide.shapes, key=lambda s: 0 if s.shape_type == MSO_SHAPE_TYPE.PICTURE else 1)
+
+        for shape in shapes:
+            x_mm = emu_to_mm(shape.left) if shape.left is not None else 0
+            y_mm = emu_to_mm(shape.top) if shape.top is not None else 0
+            w_mm = emu_to_mm(shape.width) if shape.width is not None else slide_w_mm
+            h_mm = emu_to_mm(shape.height) if shape.height is not None else 10
+
+            if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                try:
+                    pdf.image(io.BytesIO(shape.image.blob), x=x_mm, y=y_mm, w=w_mm, h=h_mm)
+                    found_any = True
+                except Exception:
+                    pass
+                continue
+
             if not shape.has_text_frame:
                 continue
-            is_title = shape == title_shape
+
+            is_title = shape == slide.shapes.title
+            cursor_y = y_mm
             for para in shape.text_frame.paragraphs:
                 text = "".join(run.text for run in para.runs).strip()
                 if not text:
                     continue
                 found_any = True
-                indent = 0 if is_title else min(para.level, 4) * 6
-                pdf.set_x(pdf.l_margin + indent)
-                size = 15 if is_title else 12
-                style = "B" if is_title else ""
+
+                indent = 0 if is_title else min(para.level, 4) * 5
+                align = pptx_align(para)
                 bullet = "" if is_title else "-  "
+
+                pdf.set_xy(x_mm + indent, cursor_y)
+                first_run = para.runs[0] if para.runs else None
+                size = 12
+                if first_run is not None and first_run.font.size is not None:
+                    size = first_run.font.size.pt
+                elif is_title:
+                    size = 24
+                style = "B" if (is_title or (first_run and first_run.font.bold)) else ""
+                if first_run and first_run.font.italic:
+                    style += "I"
+
                 pdf.set_font("Helvetica", style, size)
-                pdf.multi_cell(0, 8, sanitize_text(bullet + text))
-        pdf.ln(4)
+                color = run_color(first_run) if first_run else None
+                if color:
+                    pdf.set_text_color(*color)
+
+                line_height = max(size * 0.45, 5)
+                pdf.multi_cell(max(w_mm - indent, 10), line_height, sanitize_text(bullet + text), align=align)
+                if color:
+                    pdf.set_text_color(0, 0, 0)
+
+                cursor_y = pdf.get_y() + 1
+                if cursor_y > y_mm + h_mm + 20:
+                    break
 
     if not found_any:
         raise ValueError("empty document")

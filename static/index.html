@@ -25,6 +25,27 @@
     color: var(--text);
     display: flex;
     min-height: 100vh;
+    position: relative;
+  }
+
+  /* Decorative background — faint labeled icons hinting at each tool */
+  .bg-decor {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .bg-decor svg { width: 100%; height: 100%; }
+  .bg-decor .icon-group { opacity: 0.14; }
+  .bg-decor .icon-group text {
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 2px;
+  }
+
+  .sidebar, .main {
+    position: relative;
+    z-index: 1;
   }
 
   /* Sidebar */
@@ -39,37 +60,47 @@
     transition: transform 0.25s ease;
   }
 
-  /* Hamburger toggle — hidden on desktop, shown on mobile */
+  /* Menu toggle — hidden on desktop, shown top-right on mobile */
   .menu-toggle {
     display: none;
     position: fixed;
     top: 16px;
-    left: 16px;
+    right: 16px;
+    left: auto;
     z-index: 20;
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--panel-border);
-    color: var(--text);
     align-items: center;
-    justify-content: center;
+    gap: 8px;
+    padding: 9px 16px 9px 14px;
+    border-radius: 22px;
+    background: rgba(20,16,38,0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--panel-border);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
     cursor: pointer;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.35);
   }
-  .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after {
-    content: '';
+  .menu-toggle .icon-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 16px;
+  }
+  .menu-toggle .icon-lines span {
     display: block;
-    width: 20px;
     height: 2px;
+    border-radius: 2px;
     background: var(--teal);
-    position: relative;
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, width 0.2s ease;
   }
-  .menu-toggle span::before { position: absolute; top: -6px; }
-  .menu-toggle span::after { position: absolute; top: 6px; }
-  .menu-toggle.open span { background: transparent; }
-  .menu-toggle.open span::before { top: 0; transform: rotate(45deg); background: var(--teal); }
-  .menu-toggle.open span::after { top: 0; transform: rotate(-45deg); background: var(--teal); }
+  .menu-toggle .icon-lines span:nth-child(1) { width: 16px; }
+  .menu-toggle .icon-lines span:nth-child(2) { width: 11px; align-self: flex-end; }
+  .menu-toggle .icon-lines span:nth-child(3) { width: 16px; }
+  .menu-toggle.open .icon-lines span:nth-child(1) { transform: translateY(6px) rotate(45deg); width: 16px; }
+  .menu-toggle.open .icon-lines span:nth-child(2) { opacity: 0; }
+  .menu-toggle.open .icon-lines span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); width: 16px; }
 
   .sidebar-overlay {
     display: none;
@@ -142,7 +173,73 @@
   .main {
     flex: 1;
     padding: 40px 48px;
-    max-width: 720px;
+    display: flex;
+    gap: 36px;
+    align-items: flex-start;
+  }
+  .tool-content {
+    flex: 1 1 620px;
+    max-width: 620px;
+  }
+  .helper-panel {
+    flex: 1 1 280px;
+    max-width: 300px;
+    position: sticky;
+    top: 40px;
+  }
+  .helper-illustration {
+    width: 100%;
+    height: 150px;
+    margin-bottom: 18px;
+  }
+  .helper-panel h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--teal);
+    margin: 0 0 14px;
+    text-transform: uppercase;
+  }
+  .helper-tips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .helper-tips li {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .helper-tips li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 6px rgba(34,211,199,0.8);
+  }
+
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  .helper-illustration .float-a { animation: floatY 4s ease-in-out infinite; }
+  .helper-illustration .float-b { animation: floatY 5s ease-in-out infinite 0.6s; }
+  .helper-illustration .float-c { animation: floatY 3.4s ease-in-out infinite 1.2s; }
+  .helper-illustration .glow-dot { animation: pulseGlow 2.6s ease-in-out infinite; }
+
+  @media (max-width: 980px) {
+    .helper-panel { display: none; }
   }
   .manifest-header {
     font-family: 'IBM Plex Mono', monospace;
@@ -315,7 +412,54 @@
 </head>
 <body>
 
-<div class="menu-toggle" id="menuToggle" onclick="toggleSidebar()"><span></span></div>
+<div class="bg-decor">
+  <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- Compress -->
+    <g class="icon-group" transform="translate(280,150)">
+      <rect x="-26" y="-26" width="52" height="52" rx="8" fill="none" stroke="#22D3C7" stroke-width="2.5"/>
+      <path d="M -10 -10 L -2 -2 M -10 -10 L -10 -3 M -10 -10 L -3 -10" stroke="#22D3C7" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M 10 10 L 2 2 M 10 10 L 10 3 M 10 10 L 3 10" stroke="#22D3C7" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <text x="0" y="56" fill="#22D3C7" font-size="15" text-anchor="middle">COMPRESS IMAGES</text>
+    </g>
+    <!-- Watermark -->
+    <g class="icon-group" transform="translate(1180,230)">
+      <rect x="-30" y="-22" width="60" height="44" rx="6" fill="none" stroke="#A855F7" stroke-width="2.5"/>
+      <text x="0" y="6" fill="#A855F7" font-size="14" text-anchor="middle" transform="rotate(-25)">SAMPLE</text>
+      <text x="0" y="52" fill="#A855F7" font-size="15" text-anchor="middle">WATERMARK PHOTOS</text>
+    </g>
+    <!-- Convert image to PDF -->
+    <g class="icon-group" transform="translate(230,520)">
+      <rect x="-22" y="-26" width="30" height="40" rx="3" fill="none" stroke="#22D3C7" stroke-width="2.5"/>
+      <circle cx="-15" cy="-14" r="3" fill="none" stroke="#22D3C7" stroke-width="2"/>
+      <path d="M 4 -6 L 22 -6 M 16 -12 L 22 -6 L 16 0" stroke="#22D3C7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="26" y="-24" width="26" height="36" rx="3" fill="none" stroke="#22D3C7" stroke-width="2.5"/>
+      <text x="15" y="46" fill="#22D3C7" font-size="15" text-anchor="middle">CONVERT TO PDF</text>
+    </g>
+    <!-- Document to PDF -->
+    <g class="icon-group" transform="translate(1300,560)">
+      <rect x="-20" y="-26" width="30" height="40" rx="3" fill="none" stroke="#A855F7" stroke-width="2.5"/>
+      <line x1="-14" y1="-16" x2="2" y2="-16" stroke="#A855F7" stroke-width="1.6"/>
+      <line x1="-14" y1="-8" x2="2" y2="-8" stroke="#A855F7" stroke-width="1.6"/>
+      <line x1="-14" y1="0" x2="-4" y2="0" stroke="#A855F7" stroke-width="1.6"/>
+      <path d="M 12 -6 L 28 -6 M 22 -12 L 28 -6 L 22 0" stroke="#A855F7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="32" y="-24" width="26" height="36" rx="3" fill="none" stroke="#A855F7" stroke-width="2.5"/>
+      <text x="20" y="46" fill="#A855F7" font-size="15" text-anchor="middle">DOCUMENT TO PDF</text>
+    </g>
+    <!-- API key -->
+    <g class="icon-group" transform="translate(760,760)">
+      <circle cx="-14" cy="0" r="12" fill="none" stroke="#22D3C7" stroke-width="2.5"/>
+      <line x1="-2" y1="0" x2="24" y2="0" stroke="#22D3C7" stroke-width="2.5"/>
+      <line x1="14" y1="0" x2="14" y2="10" stroke="#22D3C7" stroke-width="2.5"/>
+      <line x1="22" y1="0" x2="22" y2="8" stroke="#22D3C7" stroke-width="2.5"/>
+      <text x="4" y="42" fill="#22D3C7" font-size="15" text-anchor="middle">GET AN API KEY</text>
+    </g>
+  </svg>
+</div>
+
+<div class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+  <span class="icon-lines"><span></span><span></span><span></span></span>
+  <span>MENU</span>
+</div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="sidebar" id="sidebar">
@@ -331,6 +475,7 @@
 </div>
 
 <div class="main">
+<div class="tool-content">
   <div class="manifest-header">FILE DESK // CONSOLE</div>
   <h1>File processing desk</h1>
   <div class="subtitle">Every file inspected, converted, and cleared for delivery.</div>
@@ -424,13 +569,87 @@
   </div>
 </div>
 
+<div class="helper-panel">
+  <svg class="helper-illustration" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
+    <rect class="float-a" x="60" y="55" width="46" height="58" rx="6" fill="none" stroke="#A855F7" stroke-width="2" opacity="0.8"/>
+    <rect class="float-b" x="120" y="35" width="46" height="58" rx="6" fill="none" stroke="#22D3C7" stroke-width="2" opacity="0.85"/>
+    <rect class="float-c" x="180" y="60" width="46" height="58" rx="6" fill="none" stroke="#A855F7" stroke-width="2" opacity="0.7"/>
+    <line class="float-a" x1="70" y1="70" x2="96" y2="70" stroke="#A855F7" stroke-width="2" opacity="0.6"/>
+    <line class="float-a" x1="70" y1="80" x2="96" y2="80" stroke="#A855F7" stroke-width="2" opacity="0.6"/>
+    <line class="float-b" x1="130" y1="50" x2="156" y2="50" stroke="#22D3C7" stroke-width="2" opacity="0.6"/>
+    <line class="float-b" x1="130" y1="60" x2="156" y2="60" stroke="#22D3C7" stroke-width="2" opacity="0.6"/>
+    <circle class="glow-dot" cx="150" cy="20" r="3" fill="#22D3C7"/>
+    <circle class="glow-dot" cx="90" cy="130" r="3" fill="#A855F7"/>
+    <circle class="glow-dot" cx="215" cy="35" r="3" fill="#22D3C7"/>
+  </svg>
+  <h3 id="helper-title">Tips</h3>
+  <ul class="helper-tips" id="helper-tips">
+    <li>Choose an image file to get started.</li>
+    <li>Quality 40-60 usually gives the best balance of size and clarity.</li>
+    <li>Larger, more detailed photos shrink more dramatically than small ones.</li>
+  </ul>
+</div>
+
+</div>
+
 <script>
+  const helperTips = {
+    compress: {
+      title: 'Tips',
+      items: [
+        'Choose an image file to get started.',
+        'Quality 40-60 usually gives the best balance of size and clarity.',
+        'Larger, more detailed photos shrink more dramatically than small ones.'
+      ]
+    },
+    docpdf: {
+      title: 'Tips',
+      items: [
+        'Works with .docx, .pptx, and .txt files.',
+        'Headings, bold/italic text, and bullet points are preserved.',
+        'Tables in Word documents are rebuilt automatically in the PDF.'
+      ]
+    },
+    convert: {
+      title: 'Tips',
+      items: [
+        'Turns a single image into a one-page PDF.',
+        'Handy for submitting scans or photos as a document.',
+        'Original image quality is kept as-is.'
+      ]
+    },
+    watermark: {
+      title: 'Tips',
+      items: [
+        'Single mode places your text once, in a corner or center.',
+        'Tiled mode repeats the text diagonally across the whole image, like a stock-photo watermark.',
+        'Lower opacity makes the watermark more subtle and less distracting.'
+      ]
+    },
+    apikey: {
+      title: 'Tips',
+      items: [
+        'Keys are generated instantly — no approval needed.',
+        'Your key is shown only once here, so save it somewhere safe.',
+        "The site's own tools don't require this key — it's for your own external projects."
+      ]
+    }
+  };
+
+  function updateHelperPanel(panelName) {
+    const data = helperTips[panelName];
+    if (!data) return;
+    document.getElementById('helper-title').textContent = data.title;
+    document.getElementById('helper-tips').innerHTML = data.items.map(t => `<li>${t}</li>`).join('');
+  }
+
   document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
     item.addEventListener('click', () => {
       document.querySelectorAll('.nav-item[data-panel]').forEach(i => i.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       item.classList.add('active');
       document.getElementById('panel-' + item.dataset.panel).classList.add('active');
+      updateHelperPanel(item.dataset.panel);
       closeSidebar();
     });
   });
