@@ -36,6 +36,65 @@
     flex-direction: column;
     padding: 24px 0;
     flex-shrink: 0;
+    transition: transform 0.25s ease;
+  }
+
+  /* Hamburger toggle — hidden on desktop, shown on mobile */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 20;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--teal);
+    position: relative;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .menu-toggle span::before { position: absolute; top: -6px; }
+  .menu-toggle span::after { position: absolute; top: 6px; }
+  .menu-toggle.open span { background: transparent; }
+  .menu-toggle.open span::before { top: 0; transform: rotate(45deg); background: var(--teal); }
+  .menu-toggle.open span::after { top: 0; transform: rotate(-45deg); background: var(--teal); }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,11,26,0.6);
+    z-index: 15;
+  }
+  .sidebar-overlay.active { display: block; }
+
+  @media (max-width: 720px) {
+    .menu-toggle { display: flex; }
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      height: 100vh;
+      transform: translateX(-100%);
+      z-index: 18;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main {
+      padding: 80px 20px 40px;
+      max-width: 100%;
+    }
   }
   .brand {
     font-size: 20px;
@@ -256,7 +315,10 @@
 </head>
 <body>
 
-<div class="sidebar">
+<div class="menu-toggle" id="menuToggle" onclick="toggleSidebar()"><span></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
   <div class="brand">FILE DESK</div>
   <div class="nav-section-label">TOOLS</div>
   <div class="nav-item active" data-panel="compress">Compress image</div>
@@ -269,9 +331,9 @@
 </div>
 
 <div class="main">
-  <div class="manifest-header">FILE DESK</div>
+  <div class="manifest-header">FILE DESK // CONSOLE</div>
   <h1>File processing desk</h1>
-  <div class="subtitle">Every file inspected and converted. </div>
+  <div class="subtitle">Every file inspected, converted, and cleared for delivery.</div>
 
   <!-- Compress image -->
   <div class="panel active" id="panel-compress">
@@ -369,8 +431,24 @@
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       item.classList.add('active');
       document.getElementById('panel-' + item.dataset.panel).classList.add('active');
+      closeSidebar();
     });
   });
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('menuToggle');
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('active', isOpen);
+    toggle.classList.toggle('open', isOpen);
+  }
+
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+    document.getElementById('menuToggle').classList.remove('open');
+  }
 
   function showStatus(id, ok) {
     const el = document.getElementById(id);
