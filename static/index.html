@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>File Desk</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23A855F7'/%3E%3Cstop offset='1' stop-color='%2322D3C7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='%230D0B1A'/%3E%3Crect x='8' y='6' width='16' height='20' rx='2' fill='none' stroke='url(%23g)' stroke-width='2.4'/%3E%3Cline x1='12' y1='13' x2='20' y2='13' stroke='url(%23g)' stroke-width='1.6'/%3E%3Cline x1='12' y1='18' x2='18' y2='18' stroke='url(%23g)' stroke-width='1.6'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -125,7 +126,10 @@
       height: 100vh;
       transform: translateX(-100%);
       z-index: 18;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 40px rgba(0,0,0,0.6);
+      background: linear-gradient(180deg, #14102A 0%, #241242 100%);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(168,85,247,0.4);
     }
     .sidebar.open { transform: translateX(0); }
     .main {
@@ -548,49 +552,49 @@
   <!-- Compress image -->
   <div class="panel" id="panel-compress">
     <div class="status-tag" id="status-compress"></div>
-    <label>Image file</label>
+    <label for="compress-file">Image file</label>
     <input type="file" id="compress-file" accept="image/*">
-    <label>Quality (1-95)</label>
+    <label for="compress-quality">Quality (1-95)</label>
     <input type="number" id="compress-quality" value="50" min="1" max="95">
-    <button class="action" onclick="compressImage()">Process file</button>
+    <button class="action" id="compress-btn" onclick="compressImage()">Process file</button>
     <div id="compress-result"></div>
   </div>
 
   <!-- Document to PDF -->
   <div class="panel" id="panel-docpdf">
     <div class="status-tag" id="status-docpdf"></div>
-    <label>Document file (.docx, .pptx, or .txt)</label>
+    <label for="docpdf-file">Document file (.docx, .pptx, or .txt)</label>
     <input type="file" id="docpdf-file" accept=".docx,.pptx,.txt">
-    <button class="action" onclick="convertDocumentToPdf()">Process file</button>
+    <button class="action" id="docpdf-btn" onclick="convertDocumentToPdf()">Process file</button>
     <div id="docpdf-result"></div>
   </div>
 
   <!-- Convert image to PDF -->
   <div class="panel" id="panel-convert">
     <div class="status-tag" id="status-convert"></div>
-    <label>Image file</label>
+    <label for="convert-file">Image file</label>
     <input type="file" id="convert-file" accept="image/*">
-    <button class="action" onclick="convertImage()">Process file</button>
+    <button class="action" id="convert-btn" onclick="convertImage()">Process file</button>
     <div id="convert-result"></div>
   </div>
 
   <!-- Watermark image -->
   <div class="panel" id="panel-watermark">
     <div class="status-tag" id="status-watermark"></div>
-    <label>Image file</label>
+    <label for="watermark-file">Image file</label>
     <input type="file" id="watermark-file" accept="image/*">
 
-    <label>Watermark text</label>
-    <input type="text" id="watermark-text" value="SAMPLE">
+    <label for="watermark-text">Watermark text</label>
+    <input type="text" id="watermark-text" value="SAMPLE" maxlength="60">
 
-    <label>Mode</label>
-    <div class="mode-toggle">
+    <label id="watermark-mode-label">Mode</label>
+    <div class="mode-toggle" role="group" aria-labelledby="watermark-mode-label">
       <div class="mode-btn active" id="mode-single" onclick="setWatermarkMode('single')">Single placement</div>
       <div class="mode-btn" id="mode-tiled" onclick="setWatermarkMode('tiled')">Tiled pattern</div>
     </div>
 
     <div id="watermark-position-row">
-      <label>Position</label>
+      <label for="watermark-position">Position</label>
       <select id="watermark-position">
         <option value="bottom-right">Bottom right</option>
         <option value="bottom-left">Bottom left</option>
@@ -601,31 +605,31 @@
     </div>
 
     <div id="watermark-angle-row" style="display:none;">
-      <label>Angle</label>
+      <label for="watermark-angle">Angle</label>
       <div class="range-row">
         <input type="range" id="watermark-angle" min="-90" max="90" value="-30" oninput="document.getElementById('angle-value').textContent = this.value + '°'">
         <span class="range-value" id="angle-value">-30°</span>
       </div>
     </div>
 
-    <label>Opacity</label>
+    <label for="watermark-opacity">Opacity</label>
     <div class="range-row">
       <input type="range" id="watermark-opacity" min="0" max="255" value="180" oninput="document.getElementById('opacity-value').textContent = this.value">
       <span class="range-value" id="opacity-value">180</span>
     </div>
 
-    <button class="action" onclick="watermarkImage()">Process file</button>
+    <button class="action" id="watermark-btn" onclick="watermarkImage()">Process file</button>
     <div id="watermark-result"></div>
   </div>
 
   <!-- Get API key -->
   <div class="panel" id="panel-apikey">
-    <label>Email (used to log your key issuance)</label>
+    <label for="apikey-email">Email (used to log your key issuance)</label>
     <input type="email" id="apikey-email" placeholder="you@example.com">
-    <button class="action" onclick="generateApiKey()">Generate key</button>
+    <button class="action" id="apikey-btn" onclick="generateApiKey()">Generate key</button>
     <div class="key-box" id="apikey-box">
       <span id="apikey-value"></span>
-      <button class="copy-btn" onclick="copyApiKey()">Copy</button>
+      <button class="copy-btn" id="copy-btn" onclick="copyApiKey()">Copy</button>
     </div>
     <div class="key-note">
       Keys are for use in your own external projects. Endpoints on this site do not currently require a key to function.
@@ -757,8 +761,13 @@
     el.style.display = 'block';
   }
 
+  const activeResultUrls = {};
   function showResult(containerId, blob, filename) {
+    if (activeResultUrls[containerId]) {
+      URL.revokeObjectURL(activeResultUrls[containerId]);
+    }
     const url = URL.createObjectURL(blob);
+    activeResultUrls[containerId] = url;
     document.getElementById(containerId).innerHTML =
       `<a class="result-link" href="${url}" download="${filename}">Download ${filename}</a>`;
   }
@@ -776,12 +785,31 @@
     document.getElementById(containerId).innerHTML = `<div class="error-msg">${message}</div>`;
   }
 
+  function setButtonLoading(btnId, isLoading, loadingText = 'Processing...') {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.originalText = btn.textContent;
+      btn.textContent = loadingText;
+      btn.disabled = true;
+    } else {
+      btn.textContent = btn.dataset.originalText || btn.textContent;
+      btn.disabled = false;
+    }
+  }
+
   async function compressImage() {
     const fileInput = document.getElementById('compress-file');
-    const quality = document.getElementById('compress-quality').value;
-    if (!fileInput.files[0]) return;
+    const qualityInput = document.getElementById('compress-quality');
+    if (!fileInput.files[0]) { showError('compress-result', 'Please choose an image file first.'); return; }
+    let quality = parseInt(qualityInput.value, 10);
+    if (isNaN(quality) || quality < 1 || quality > 95) {
+      showError('compress-result', 'Quality must be a number between 1 and 95.');
+      return;
+    }
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
+    setButtonLoading('compress-btn', true);
     try {
       const res = await fetch(`/compress-image?quality=${quality}`, { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-compress', false); showError('compress-result', await extractErrorDetail(res)); return; }
@@ -791,14 +819,17 @@
     } catch {
       showStatus('status-compress', false);
       showError('compress-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('compress-btn', false);
     }
   }
 
   async function convertDocumentToPdf() {
     const fileInput = document.getElementById('docpdf-file');
-    if (!fileInput.files[0]) return;
+    if (!fileInput.files[0]) { showError('docpdf-result', 'Please choose a document file first.'); return; }
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
+    setButtonLoading('docpdf-btn', true);
     try {
       const res = await fetch('/convert-document-to-pdf', { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-docpdf', false); showError('docpdf-result', await extractErrorDetail(res)); return; }
@@ -808,14 +839,17 @@
     } catch {
       showStatus('status-docpdf', false);
       showError('docpdf-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('docpdf-btn', false);
     }
   }
 
   async function convertImage() {
     const fileInput = document.getElementById('convert-file');
-    if (!fileInput.files[0]) return;
+    if (!fileInput.files[0]) { showError('convert-result', 'Please choose an image file first.'); return; }
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
+    setButtonLoading('convert-btn', true);
     try {
       const res = await fetch('/convert-image-to-pdf', { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-convert', false); showError('convert-result', await extractErrorDetail(res)); return; }
@@ -825,6 +859,8 @@
     } catch {
       showStatus('status-convert', false);
       showError('convert-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('convert-btn', false);
     }
   }
 
@@ -843,12 +879,14 @@
     const opacity = document.getElementById('watermark-opacity').value;
     const position = document.getElementById('watermark-position').value;
     const angle = document.getElementById('watermark-angle').value;
-    if (!fileInput.files[0]) return;
+    if (!fileInput.files[0]) { showError('watermark-result', 'Please choose an image file first.'); return; }
+    if (!text.trim()) { showError('watermark-result', 'Please enter watermark text.'); return; }
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
     const params = new URLSearchParams({
       text, mode: watermarkMode, opacity, position, angle
     });
+    setButtonLoading('watermark-btn', true);
     try {
       const res = await fetch(`/watermark-image?${params.toString()}`, { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-watermark', false); showError('watermark-result', await extractErrorDetail(res)); return; }
@@ -858,6 +896,8 @@
     } catch {
       showStatus('status-watermark', false);
       showError('watermark-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('watermark-btn', false);
     }
   }
 
@@ -866,6 +906,7 @@
     const errorBox = document.getElementById('apikey-error');
     const keyBox = document.getElementById('apikey-box');
     errorBox.innerHTML = '';
+    setButtonLoading('apikey-btn', true, 'Generating...');
     try {
       const res = await fetch(`/generate-key?email=${encodeURIComponent(email)}`, { method: 'POST' });
       if (!res.ok) { showError('apikey-error', await extractErrorDetail(res)); return; }
@@ -874,12 +915,18 @@
       keyBox.style.display = 'block';
     } catch {
       showError('apikey-error', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('apikey-btn', false);
     }
   }
 
   function copyApiKey() {
     const key = document.getElementById('apikey-value').textContent;
     navigator.clipboard.writeText(key);
+    const btn = document.getElementById('copy-btn');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
   }
 </script>
 

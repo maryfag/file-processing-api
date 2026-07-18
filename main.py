@@ -5,9 +5,10 @@ import secrets
 import tempfile
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Request
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from fpdf import FPDF
 from PIL import Image, ImageDraw, ImageFont
 import docx
@@ -30,6 +31,15 @@ API_KEYS_FILE = os.path.join(tempfile.gettempdir(), "api_keys.json")
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Allows external developers (using a self-serve API key from /generate-key)
+# to call these endpoints from their own website's JavaScript.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -44,6 +54,19 @@ async def global_exception_handler(request: Request, exc: Exception):
 def serve_homepage():
     with open("static/index.html", "r") as f:
         return f.read()
+
+
+def unique_temp_path(suffix: str) -> str:
+    """A fresh, unpredictable filename per request — prevents concurrent
+    requests from different users overwriting or reading each other's files."""
+    return os.path.join(tempfile.gettempdir(), f"{secrets.token_hex(8)}_{suffix}")
+
+
+def cleanup_file(path: str):
+    try:
+        os.remove(path)
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +221,7 @@ def cell_shading_color(cell):
 
 @app.post("/compress-image")
 @limiter.limit("10/minute")
-async def compress_image(request: Request, file: UploadFile = File(...), quality: int = 50):
+async def compress_image(request: Request, background_tasks: BackgroundTasks, file: UploadFile = File(...), quality: int = 50):
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image.")
     contents = await file.read()
@@ -209,9 +232,11 @@ async def compress_image(request: Request, file: UploadFile = File(...), quality
         image = image.convert("RGB")
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
-    temp_path = os.path.join(tempfile.gettempdir(), "compressed_output.jpg")
-    image.save(temp_path, format="JPEG", quality=quality, optimize=True)
-    return FileResponse(temp_path, media_type="image/jpeg", filename="compressed.jpg")
+    safe_quality = max(1, min(95, quality))
+    temp_path = unique_temp_path("compressed_output.jpg")
+    image.save(temp_path, format="JPEG", quality=safe_quality, optimize=True)
+    background_tasks.add_task(cleanup_file, temp_path)
+    return FileResponse(temp_path, media_type="image/jpeg", filename="compressed.jpg", background=background_tasks)
 
 
 # ---------------------------------------------------------------------------
@@ -460,7 +485,7 @@ def build_pdf_from_txt(contents: bytes) -> FPDF:
 
 @app.post("/convert-document-to-pdf")
 @limiter.limit("10/minute")
-async def convert_document_to_pdf(request: Request, file: UploadFile = File(...)):
+async def convert_document_to_pdf(request: Request, background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     filename = file.filename or ""
     ext = os.path.splitext(filename)[1].lower()
 
@@ -483,9 +508,10 @@ async def convert_document_to_pdf(request: Request, file: UploadFile = File(...)
     except Exception:
         raise HTTPException(status_code=400, detail="Could not read this document. It may be corrupted or invalid.")
 
-    temp_path = os.path.join(tempfile.gettempdir(), "document_converted.pdf")
+    temp_path = unique_temp_path("document_converted.pdf")
     pdf.output(temp_path)
-    return FileResponse(temp_path, media_type="application/pdf", filename="converted_document.pdf")
+    background_tasks.add_task(cleanup_file, temp_path)
+    return FileResponse(temp_path, media_type="application/pdf", filename="converted_document.pdf", background=background_tasks)
 
 
 # ---------------------------------------------------------------------------
@@ -494,7 +520,7 @@ async def convert_document_to_pdf(request: Request, file: UploadFile = File(...)
 
 @app.post("/convert-image-to-pdf")
 @limiter.limit("10/minute")
-async def convert_image_to_pdf(request: Request, file: UploadFile = File(...)):
+async def convert_image_to_pdf(request: Request, background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image.")
     contents = await file.read()
@@ -505,9 +531,10 @@ async def convert_image_to_pdf(request: Request, file: UploadFile = File(...)):
         image = image.convert("RGB")
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid or corrupted image file.")
-    temp_path = os.path.join(tempfile.gettempdir(), "converted.pdf")
+    temp_path = unique_temp_path("converted.pdf")
     image.save(temp_path)
-    return FileResponse(temp_path, media_type="application/pdf", filename="converted.pdf")
+    background_tasks.add_task(cleanup_file, temp_path)
+    return FileResponse(temp_path, media_type="application/pdf", filename="converted.pdf", background=background_tasks)
 
 
 # ---------------------------------------------------------------------------
@@ -518,6 +545,7 @@ async def convert_image_to_pdf(request: Request, file: UploadFile = File(...)):
 @limiter.limit("10/minute")
 async def watermark_image(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     text: str = "SAMPLE",
     mode: str = "single",          # "single" or "tiled"
@@ -576,9 +604,10 @@ async def watermark_image(
         draw.text(xy, text, font=font, fill=(255, 255, 255, safe_opacity), stroke_width=3, stroke_fill=(0, 0, 0, safe_opacity))
 
     watermarked = Image.alpha_composite(image, overlay).convert("RGB")
-    temp_path = os.path.join(tempfile.gettempdir(), "watermarked.jpg")
+    temp_path = unique_temp_path("watermarked.jpg")
     watermarked.save(temp_path, format="JPEG")
-    return FileResponse(temp_path, media_type="image/jpeg", filename="watermarked.jpg")
+    background_tasks.add_task(cleanup_file, temp_path)
+    return FileResponse(temp_path, media_type="image/jpeg", filename="watermarked.jpg", background=background_tasks)
 
 
 # ---------------------------------------------------------------------------
