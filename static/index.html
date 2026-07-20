@@ -507,6 +507,7 @@
   <div class="nav-item" data-panel="docpdf">Document to PDF</div>
   <div class="nav-item" data-panel="convert">Convert to PDF</div>
   <div class="nav-item" data-panel="watermark">Watermark image</div>
+  <div class="nav-item" data-panel="qrcode">QR code generator</div>
   <div class="sidebar-bottom">
     <div class="nav-item" data-panel="apikey">Get your API key</div>
   </div>
@@ -540,6 +541,11 @@
         <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="9" y="10" width="22" height="20" rx="3" fill="none" stroke="#A855F7" stroke-width="2.2"/><text x="20" y="24" fill="#A855F7" font-size="8" text-anchor="middle" transform="rotate(-20 20 20)">TAG</text></svg>
         <div class="tool-card-title">Watermark image</div>
         <div class="tool-card-desc">Stamp text on a photo, once in a corner or tiled across it.</div>
+      </div>
+      <div class="tool-card" data-goto="qrcode">
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="7" y="7" width="10" height="10" fill="none" stroke="#22D3C7" stroke-width="2"/><rect x="23" y="7" width="10" height="10" fill="none" stroke="#22D3C7" stroke-width="2"/><rect x="7" y="23" width="10" height="10" fill="none" stroke="#22D3C7" stroke-width="2"/><rect x="23" y="23" width="4" height="4" fill="#22D3C7"/><rect x="29" y="29" width="4" height="4" fill="#22D3C7"/><rect x="23" y="29" width="4" height="4" fill="#22D3C7"/></svg>
+        <div class="tool-card-title">QR code generator</div>
+        <div class="tool-card-desc">Turn any text or link into a downloadable QR code.</div>
       </div>
       <div class="tool-card" data-goto="apikey">
         <svg class="tool-card-icon" viewBox="0 0 40 40"><circle cx="13" cy="20" r="7" fill="none" stroke="#22D3C7" stroke-width="2.2"/><line x1="20" y1="20" x2="32" y2="20" stroke="#22D3C7" stroke-width="2.2"/><line x1="26" y1="20" x2="26" y2="26" stroke="#22D3C7" stroke-width="2.2"/><line x1="31" y1="20" x2="31" y2="25" stroke="#22D3C7" stroke-width="2.2"/></svg>
@@ -622,6 +628,29 @@
     <div id="watermark-result"></div>
   </div>
 
+  <!-- QR code generator -->
+  <div class="panel" id="panel-qrcode">
+    <label for="qr-text">Text or link to encode</label>
+    <textarea id="qr-text" placeholder="https://example.com or any text" maxlength="1000"></textarea>
+
+    <label for="qr-size">Size</label>
+    <div class="range-row">
+      <input type="range" id="qr-size" min="2" max="20" value="8" oninput="document.getElementById('qr-size-value').textContent = this.value">
+      <span class="range-value" id="qr-size-value">8</span>
+    </div>
+
+    <label for="qr-error-correction">Error correction level</label>
+    <select id="qr-error-correction">
+      <option value="L">Low (~7% — smallest, cleanest pattern)</option>
+      <option value="M" selected>Medium (~15% — balanced default)</option>
+      <option value="Q">Quartile (~25% — more resilient)</option>
+      <option value="H">High (~30% — most resilient, densest pattern)</option>
+    </select>
+
+    <button class="action" id="qrcode-btn" onclick="generateQrCode()">Generate QR code</button>
+    <div id="qrcode-result"></div>
+  </div>
+
   <!-- Get API key -->
   <div class="panel" id="panel-apikey">
     <label for="apikey-email">Email (used to log your key issuance)</label>
@@ -701,6 +730,14 @@
         'Single mode places your text once, in a corner or center.',
         'Tiled mode repeats the text diagonally across the whole image, like a stock-photo watermark.',
         'Lower opacity makes the watermark more subtle and less distracting.'
+      ]
+    },
+    qrcode: {
+      title: 'Tips',
+      items: [
+        'Works with any text — links, Wi-Fi details, plain notes.',
+        'Higher error correction makes the code more scannable if partly damaged or covered, but denser-looking.',
+        'Very long text creates a busier pattern that can be harder for cameras to scan.'
       ]
     },
     apikey: {
@@ -900,6 +937,32 @@
       setButtonLoading('watermark-btn', false);
     }
   }
+
+  async function generateQrCode() {
+    const text = document.getElementById('qr-text').value;
+    const size = document.getElementById('qr-size').value;
+    const errorCorrection = document.getElementById('qr-error-correction').value;
+    if (!text.trim()) { showError('qrcode-result', 'Please enter some text or a link first.'); return; }
+    setButtonLoading('qrcode-btn', true);
+    try {
+      const params = new URLSearchParams({ text, size, error_correction: errorCorrection });
+      const res = await fetch(`/generate-qr-code?${params.toString()}`, { method: 'POST' });
+      if (!res.ok) { showError('qrcode-result', await extractErrorDetail(res)); return; }
+      const blob = await res.blob();
+      if (activeResultUrls['qrcode-result']) URL.revokeObjectURL(activeResultUrls['qrcode-result']);
+      const url = URL.createObjectURL(blob);
+      activeResultUrls['qrcode-result'] = url;
+      document.getElementById('qrcode-result').innerHTML = `
+        <img src="${url}" alt="Generated QR code" style="display:block; margin-top:14px; border-radius:8px; max-width:100%; background:#fff; padding:10px;">
+        <a class="result-link" href="${url}" download="qrcode.png">Download qrcode.png</a>
+      `;
+    } catch {
+      showError('qrcode-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('qrcode-btn', false);
+    }
+  }
+
 
   async function generateApiKey() {
     const email = document.getElementById('apikey-email').value;

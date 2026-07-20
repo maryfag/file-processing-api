@@ -19,6 +19,8 @@ from docx.oxml.ns import qn
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.enum.text import PP_ALIGN
+import qrcode
+from qrcode.constants import ERROR_CORRECT_L, ERROR_CORRECT_M, ERROR_CORRECT_Q, ERROR_CORRECT_H
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -608,6 +610,47 @@ async def watermark_image(
     watermarked.save(temp_path, format="JPEG")
     background_tasks.add_task(cleanup_file, temp_path)
     return FileResponse(temp_path, media_type="image/jpeg", filename="watermarked.jpg", background=background_tasks)
+
+
+# ---------------------------------------------------------------------------
+# QR code generator
+# ---------------------------------------------------------------------------
+
+QR_ERROR_LEVELS = {
+    "L": ERROR_CORRECT_L,  # ~7% of the code can be damaged/covered and still scan
+    "M": ERROR_CORRECT_M,  # ~15%
+    "Q": ERROR_CORRECT_Q,  # ~25%
+    "H": ERROR_CORRECT_H,  # ~30% — most reliable, but denser-looking pattern
+}
+MAX_QR_TEXT_LENGTH = 1000
+
+
+@app.post("/generate-qr-code")
+@limiter.limit("10/minute")
+async def generate_qr_code(request: Request, background_tasks: BackgroundTasks, text: str = "", size: int = 8, error_correction: str = "M"):
+    clean_text = (text or "").strip()
+    if not clean_text:
+        raise HTTPException(status_code=400, detail="Please enter some text or a link to encode.")
+    if len(clean_text) > MAX_QR_TEXT_LENGTH:
+        raise HTTPException(status_code=400, detail=f"Text is too long (max {MAX_QR_TEXT_LENGTH} characters).")
+
+    safe_size = max(2, min(20, size))
+    level = QR_ERROR_LEVELS.get(error_correction.upper(), ERROR_CORRECT_M)
+
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=level,
+        box_size=safe_size,
+        border=4,
+    )
+    qr.add_data(clean_text)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+
+    temp_path = unique_temp_path("qrcode.png")
+    img.save(temp_path, format="PNG")
+    background_tasks.add_task(cleanup_file, temp_path)
+    return FileResponse(temp_path, media_type="image/png", filename="qrcode.png", background=background_tasks)
 
 
 # ---------------------------------------------------------------------------
