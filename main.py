@@ -42,6 +42,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    # These headers were flagged as missing by securityheaders.com — each
+    # closes off a specific class of browser-side attack.
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"                    # blocks clickjacking (site being loaded in a hidden iframe)
+    response.headers["X-Content-Type-Options"] = "nosniff"                # stops the browser guessing a file's type and running it as something it shouldn't
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"  # limits what URL info leaks to other sites when someone clicks a link away from this one
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"  # explicitly disables browser features this site never uses
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "script-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: blob:; "
+        "connect-src 'self';"
+    )
+    return response
+
+
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
