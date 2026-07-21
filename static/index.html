@@ -1109,23 +1109,36 @@
       Object.assign(el.style, positions[position] || positions['bottom-right']);
       box.appendChild(el);
     } else {
-      // Tiled mode — scatter a few copies at the chosen angle so it reads
-      // as "repeating pattern", without needing to compute an exact grid.
-      const spots = [
-        { top: '18px', left: '10px' },
-        { top: '55px', left: '55%' },
-        { top: '105px', left: '20px' },
-        { top: '75px', left: '5%' },
-      ];
-      spots.forEach(spot => {
-        const el = document.createElement('div');
-        el.className = 'wm-preview-tile';
-        el.textContent = text;
-        el.style.opacity = opacityFraction;
-        el.style.transform = `rotate(${angle}deg)`;
-        Object.assign(el.style, spot);
-        box.appendChild(el);
-      });
+      // Tiled mode — build an actual dense grid, matching how the real
+      // backend covers the whole image, instead of a few scattered copies.
+      const boxRect = box.getBoundingClientRect();
+      const boxWidth = boxRect.width || 600;
+      const boxHeight = 160;
+
+      // Rough tile size estimate (font ~16px, plus padding) — doesn't need
+      // to be exact, just close enough that the grid reads as "full coverage".
+      const approxTextWidth = text.length * 10 + 24;
+      const approxTextHeight = 34;
+      const angleRad = Math.abs(angle) * Math.PI / 180;
+      const rotatedW = Math.abs(approxTextWidth * Math.cos(angleRad)) + Math.abs(approxTextHeight * Math.sin(angleRad));
+      const rotatedH = Math.abs(approxTextWidth * Math.sin(angleRad)) + Math.abs(approxTextHeight * Math.cos(angleRad));
+
+      const spacingX = rotatedW + 24;
+      const spacingY = rotatedH + 24;
+
+      for (let y = -rotatedH; y < boxHeight + rotatedH; y += spacingY) {
+        for (let x = -rotatedW; x < boxWidth + rotatedW; x += spacingX) {
+          const el = document.createElement('div');
+          el.className = 'wm-preview-tile';
+          el.textContent = text;
+          el.style.opacity = opacityFraction;
+          el.style.transform = `rotate(${angle}deg)`;
+          el.style.top = y + 'px';
+          el.style.left = x + 'px';
+          el.style.fontSize = '15px';
+          box.appendChild(el);
+        }
+      }
     }
   }
 
