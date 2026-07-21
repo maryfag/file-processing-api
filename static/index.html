@@ -461,6 +461,45 @@
     color: var(--muted);
     margin-top: 6px;
   }
+  .format-warning {
+    font-size: 12px;
+    color: #E8B84B;
+    background: rgba(232,184,75,0.08);
+    border: 1px solid rgba(232,184,75,0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .wm-preview-box {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    margin: 16px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #3a2a5c 0%, #1c1436 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .wm-preview-box::before {
+    content: 'PREVIEW';
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.3);
+  }
+  .wm-preview-tile {
+    position: absolute;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    pointer-events: none;
+    font-size: 18px;
+  }
 
   .api-docs {
     margin-top: 18px;
@@ -635,6 +674,9 @@
     <label for="docpdf-file">Document file (.docx, .pptx, or .txt)</label>
     <input type="file" id="docpdf-file" accept=".docx,.pptx,.txt">
     <div class="file-hint">Accepted: .docx, .pptx, .txt. Max size: 5MB.</div>
+    <div class="format-warning">
+      ⚠ The result won't be an exact visual copy of your original — text, headings, bold/italic, colors, and simple tables carry over, but exact spacing, complex layouts, and images may look different.
+    </div>
     <button class="action" id="docpdf-btn" onclick="convertDocumentToPdf()">Process file</button>
     <div id="docpdf-result"></div>
   </div>
@@ -657,7 +699,7 @@
     <div class="file-hint">Accepted: JPG, PNG, and other common image formats. Max size: 5MB.</div>
 
     <label for="watermark-text">Watermark text</label>
-    <input type="text" id="watermark-text" value="SAMPLE" maxlength="60">
+    <input type="text" id="watermark-text" value="SAMPLE" maxlength="60" oninput="updateWatermarkPreview()">
 
     <label id="watermark-mode-label">Mode</label>
     <div class="mode-toggle" role="group" aria-labelledby="watermark-mode-label">
@@ -665,9 +707,15 @@
       <div class="mode-btn" id="mode-tiled" onclick="setWatermarkMode('tiled')">Tiled pattern</div>
     </div>
 
+    <!-- Live preview — so people can just watch it change instead of
+         needing to understand what "opacity" or "angle" mean. -->
+    <div class="wm-preview-box" id="wm-preview-box">
+      <div class="wm-preview-tile" id="wm-preview-tile">SAMPLE</div>
+    </div>
+
     <div id="watermark-position-row">
       <label for="watermark-position">Position</label>
-      <select id="watermark-position">
+      <select id="watermark-position" onchange="updateWatermarkPreview()">
         <option value="bottom-right">Bottom right</option>
         <option value="bottom-left">Bottom left</option>
         <option value="top-right">Top right</option>
@@ -677,17 +725,17 @@
     </div>
 
     <div id="watermark-angle-row" style="display:none;">
-      <label for="watermark-angle">Angle</label>
+      <label for="watermark-angle">Tilt</label>
       <div class="range-row">
-        <input type="range" id="watermark-angle" min="-90" max="90" value="-30" oninput="document.getElementById('angle-value').textContent = this.value + '°'">
+        <input type="range" id="watermark-angle" min="-90" max="90" value="-30" oninput="updateWatermarkPreview()">
         <span class="range-value" id="angle-value">-30°</span>
       </div>
     </div>
 
-    <label for="watermark-opacity">Opacity</label>
+    <label for="watermark-opacity">Visibility</label>
     <div class="range-row">
-      <input type="range" id="watermark-opacity" min="0" max="255" value="180" oninput="document.getElementById('opacity-value').textContent = this.value">
-      <span class="range-value" id="opacity-value">180</span>
+      <input type="range" id="watermark-opacity" min="5" max="100" value="70" oninput="updateWatermarkPreview()">
+      <span class="range-value" id="opacity-value">70%</span>
     </div>
 
     <button class="action" id="watermark-btn" onclick="watermarkImage()">Process file</button>
@@ -904,6 +952,30 @@
       `<a class="result-link" href="${url}" download="${filename}">Download ${filename}</a>`;
   }
 
+  // Clears a previous result the moment any setting changes — so an old
+  // download never sits there looking valid once the inputs no longer match it.
+  function clearResult(containerId, statusId) {
+    const container = document.getElementById(containerId);
+    if (container) container.innerHTML = '';
+    if (activeResultUrls[containerId]) {
+      URL.revokeObjectURL(activeResultUrls[containerId]);
+      delete activeResultUrls[containerId];
+    }
+    if (statusId) {
+      const statusEl = document.getElementById(statusId);
+      if (statusEl) statusEl.style.display = 'none';
+    }
+  }
+
+  function wireClearOnChange(inputIds, containerId, statusId) {
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', () => clearResult(containerId, statusId));
+      el.addEventListener('change', () => clearResult(containerId, statusId));
+    });
+  }
+
   async function extractErrorDetail(res) {
     try {
       const data = await res.json();
@@ -1003,12 +1075,65 @@
     document.getElementById('mode-tiled').classList.toggle('active', mode === 'tiled');
     document.getElementById('watermark-position-row').style.display = mode === 'single' ? 'block' : 'none';
     document.getElementById('watermark-angle-row').style.display = mode === 'tiled' ? 'block' : 'none';
+    updateWatermarkPreview();
+    clearResult('watermark-result', 'status-watermark');
+  }
+
+  // Drives the live preview box so people can see exactly what "Visibility"
+  // and "Tilt" do instead of having to interpret raw numbers.
+  function updateWatermarkPreview() {
+    const text = document.getElementById('watermark-text').value || 'SAMPLE';
+    const opacityPercent = parseInt(document.getElementById('watermark-opacity').value, 10);
+    const angle = parseInt(document.getElementById('watermark-angle').value, 10);
+    const position = document.getElementById('watermark-position').value;
+
+    document.getElementById('opacity-value').textContent = opacityPercent + '%';
+    document.getElementById('angle-value').textContent = angle + '°';
+
+    const box = document.getElementById('wm-preview-box');
+    const opacityFraction = opacityPercent / 100;
+    box.innerHTML = '';
+
+    if (watermarkMode === 'single') {
+      const el = document.createElement('div');
+      el.className = 'wm-preview-tile';
+      el.textContent = text;
+      el.style.opacity = opacityFraction;
+      const positions = {
+        'bottom-right': { bottom: '12px', right: '14px' },
+        'bottom-left': { bottom: '12px', left: '14px' },
+        'top-right': { top: '20px', right: '14px' },
+        'top-left': { top: '20px', left: '14px' },
+        'center': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+      };
+      Object.assign(el.style, positions[position] || positions['bottom-right']);
+      box.appendChild(el);
+    } else {
+      // Tiled mode — scatter a few copies at the chosen angle so it reads
+      // as "repeating pattern", without needing to compute an exact grid.
+      const spots = [
+        { top: '18px', left: '10px' },
+        { top: '55px', left: '55%' },
+        { top: '105px', left: '20px' },
+        { top: '75px', left: '5%' },
+      ];
+      spots.forEach(spot => {
+        const el = document.createElement('div');
+        el.className = 'wm-preview-tile';
+        el.textContent = text;
+        el.style.opacity = opacityFraction;
+        el.style.transform = `rotate(${angle}deg)`;
+        Object.assign(el.style, spot);
+        box.appendChild(el);
+      });
+    }
   }
 
   async function watermarkImage() {
     const fileInput = document.getElementById('watermark-file');
     const text = document.getElementById('watermark-text').value;
-    const opacity = document.getElementById('watermark-opacity').value;
+    const opacityPercent = parseInt(document.getElementById('watermark-opacity').value, 10);
+    const opacity = Math.round((opacityPercent / 100) * 255);  // backend expects 0-255
     const position = document.getElementById('watermark-position').value;
     const angle = document.getElementById('watermark-angle').value;
     if (!fileInput.files[0]) { showError('watermark-result', 'Please choose an image file first.'); return; }
@@ -1086,6 +1211,15 @@
     btn.textContent = 'Copied!';
     setTimeout(() => { btn.textContent = original; }, 1500);
   }
+
+  updateWatermarkPreview();
+
+  // Clear old results the moment any setting changes, across every tool.
+  wireClearOnChange(['compress-file', 'compress-quality'], 'compress-result', 'status-compress');
+  wireClearOnChange(['docpdf-file'], 'docpdf-result', 'status-docpdf');
+  wireClearOnChange(['convert-file'], 'convert-result', 'status-convert');
+  wireClearOnChange(['watermark-file', 'watermark-text', 'watermark-position', 'watermark-angle', 'watermark-opacity'], 'watermark-result', 'status-watermark');
+  wireClearOnChange(['qr-text', 'qr-size', 'qr-error-correction'], 'qrcode-result', null);
 </script>
 
 </body>
