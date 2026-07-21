@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>File Desk</title>
+<title>File Desk — File Processing & Utilities</title>
+<meta name="description" content="Compress images, convert documents to PDF, watermark photos, generate QR codes, and grab a free API key — all in one place.">
+
+<!-- Social / WhatsApp preview -->
+<meta property="og:title" content="File Desk — File Processing & Utilities">
+<meta property="og:description" content="Compress images, convert documents to PDF, watermark photos, generate QR codes, and grab a free API key.">
+<meta property="og:image" content="/static/preview-banner.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="File Desk — File Processing & Utilities">
+<meta name="twitter:description" content="Compress images, convert documents to PDF, watermark photos, generate QR codes, and grab a free API key.">
+<meta name="twitter:image" content="/static/preview-banner.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23A855F7'/%3E%3Cstop offset='1' stop-color='%2322D3C7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='%230D0B1A'/%3E%3Crect x='8' y='6' width='16' height='20' rx='2' fill='none' stroke='url(%23g)' stroke-width='2.4'/%3E%3Cline x1='12' y1='13' x2='20' y2='13' stroke='url(%23g)' stroke-width='1.6'/%3E%3Cline x1='12' y1='18' x2='18' y2='18' stroke='url(%23g)' stroke-width='1.6'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
@@ -445,6 +456,57 @@
     margin-top: 10px;
     line-height: 1.5;
   }
+  .file-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .api-docs {
+    margin-top: 18px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 14px;
+  }
+  .api-docs summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.5px;
+  }
+  .api-docs-body {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .api-docs-body p { margin: 8px 0; }
+  .api-docs-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 12px;
+  }
+  .api-endpoint-list {
+    list-style: none;
+    margin: 8px 0;
+    padding: 0;
+  }
+  .api-endpoint-list li { margin-bottom: 8px; }
+  .api-docs-body pre {
+    font-family: 'IBM Plex Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--teal);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
 </style>
 </head>
 <body class="home-active">
@@ -505,7 +567,7 @@
   <div class="nav-section-label">TOOLS</div>
   <div class="nav-item" data-panel="compress">Compress image</div>
   <div class="nav-item" data-panel="docpdf">Document to PDF</div>
-  <div class="nav-item" data-panel="convert">Convert to PDF</div>
+  <div class="nav-item" data-panel="convert">Image to PDF</div>
   <div class="nav-item" data-panel="watermark">Watermark image</div>
   <div class="nav-item" data-panel="qrcode">QR code generator</div>
   <div class="sidebar-bottom">
@@ -534,7 +596,7 @@
       </div>
       <div class="tool-card" data-goto="convert">
         <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="6" y="8" width="16" height="22" rx="2" fill="none" stroke="#22D3C7" stroke-width="2.2"/><circle cx="11" cy="15" r="1.8" fill="none" stroke="#22D3C7" stroke-width="1.6"/><path d="M25 19 L31 19 M28 16 L31 19 L28 22" stroke="#22D3C7" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="tool-card-title">Convert to PDF</div>
+        <div class="tool-card-title">Image to PDF</div>
         <div class="tool-card-desc">Turn a single image into a one-page PDF file.</div>
       </div>
       <div class="tool-card" data-goto="watermark">
@@ -560,6 +622,7 @@
     <div class="status-tag" id="status-compress"></div>
     <label for="compress-file">Image file</label>
     <input type="file" id="compress-file" accept="image/*">
+    <div class="file-hint">Accepted: JPG, PNG, and other common image formats. Max size: 5MB.</div>
     <label for="compress-quality">Quality (1-95)</label>
     <input type="number" id="compress-quality" value="50" min="1" max="95">
     <button class="action" id="compress-btn" onclick="compressImage()">Process file</button>
@@ -571,6 +634,7 @@
     <div class="status-tag" id="status-docpdf"></div>
     <label for="docpdf-file">Document file (.docx, .pptx, or .txt)</label>
     <input type="file" id="docpdf-file" accept=".docx,.pptx,.txt">
+    <div class="file-hint">Accepted: .docx, .pptx, .txt. Max size: 5MB.</div>
     <button class="action" id="docpdf-btn" onclick="convertDocumentToPdf()">Process file</button>
     <div id="docpdf-result"></div>
   </div>
@@ -580,6 +644,7 @@
     <div class="status-tag" id="status-convert"></div>
     <label for="convert-file">Image file</label>
     <input type="file" id="convert-file" accept="image/*">
+    <div class="file-hint">Accepted: JPG, PNG, and other common image formats. Max size: 5MB.</div>
     <button class="action" id="convert-btn" onclick="convertImage()">Process file</button>
     <div id="convert-result"></div>
   </div>
@@ -589,6 +654,7 @@
     <div class="status-tag" id="status-watermark"></div>
     <label for="watermark-file">Image file</label>
     <input type="file" id="watermark-file" accept="image/*">
+    <div class="file-hint">Accepted: JPG, PNG, and other common image formats. Max size: 5MB.</div>
 
     <label for="watermark-text">Watermark text</label>
     <input type="text" id="watermark-text" value="SAMPLE" maxlength="60">
@@ -664,6 +730,25 @@
       Keys are for use in your own external projects. Endpoints on this site do not currently require a key to function.
     </div>
     <div id="apikey-error"></div>
+
+    <details class="api-docs">
+      <summary>API documentation</summary>
+      <div class="api-docs-body">
+        <p><strong>Base URL:</strong> <code id="api-base-url">—</code></p>
+        <p><strong>Authentication:</strong> none required. Your generated key is for identifying your own projects — it isn't checked or enforced by any endpoint here.</p>
+        <p><strong>Endpoints:</strong></p>
+        <ul class="api-endpoint-list">
+          <li><code>POST /compress-image</code> — form field <code>file</code>, query param <code>quality</code> (1–95)</li>
+          <li><code>POST /convert-document-to-pdf</code> — form field <code>file</code> (.docx, .pptx, or .txt)</li>
+          <li><code>POST /convert-image-to-pdf</code> — form field <code>file</code></li>
+          <li><code>POST /watermark-image</code> — form field <code>file</code>, query params <code>text</code>, <code>mode</code> (single/tiled), <code>position</code>, <code>opacity</code>, <code>angle</code></li>
+          <li><code>POST /generate-qr-code</code> — query params <code>text</code>, <code>size</code>, <code>error_correction</code> (L/M/Q/H)</li>
+        </ul>
+        <p><strong>Sample request:</strong></p>
+        <pre id="api-sample-curl">curl -X POST ".../compress-image?quality=50" -F "file=@photo.jpg" -o compressed.jpg</pre>
+        <p style="font-size:12px; color:var(--muted);">Max file size: 5MB per request. Requests are rate-limited to 10 per minute per IP (5/minute for key generation).</p>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -766,6 +851,16 @@
     document.body.classList.toggle('home-active', panelName === 'home');
     updateHelperPanel(panelName);
     closeSidebar();
+  }
+
+  // Fill in the API docs with whichever domain is actually serving this page
+  // right now (Render or Vercel) rather than a hardcoded URL.
+  const currentOrigin = window.location.origin;
+  const baseUrlEl = document.getElementById('api-base-url');
+  const curlEl = document.getElementById('api-sample-curl');
+  if (baseUrlEl) baseUrlEl.textContent = currentOrigin;
+  if (curlEl) {
+    curlEl.textContent = `curl -X POST "${currentOrigin}/compress-image?quality=50" -F "file=@photo.jpg" -o compressed.jpg`;
   }
 
   document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
