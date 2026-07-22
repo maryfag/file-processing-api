@@ -40,6 +40,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Original-Size", "X-Compressed-Size"],
 )
 
 
@@ -109,6 +110,27 @@ def load_watermark_font(size: int):
         except Exception:
             continue
     return ImageFont.load_default()
+
+
+def hex_to_rgb(hex_color: str, default=(255, 255, 255)):
+    try:
+        hex_color = (hex_color or "").lstrip("#")
+        if len(hex_color) == 3:
+            hex_color = "".join(c * 2 for c in hex_color)
+        if len(hex_color) != 6:
+            return default
+        return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+    except Exception:
+        return default
+
+
+def apply_opacity(img_rgba: Image.Image, opacity: int) -> Image.Image:
+    """Scales an RGBA image's existing alpha channel by opacity/255 —
+    used for logo watermarks, same idea as the opacity slider for text."""
+    r, g, b, a = img_rgba.split()
+    factor = max(0, min(255, opacity)) / 255
+    a = a.point(lambda p: int(p * factor))
+    return Image.merge("RGBA", (r, g, b, a))
 
 
 def iter_block_items(document):
@@ -259,7 +281,14 @@ async def compress_image(request: Request, background_tasks: BackgroundTasks, fi
     temp_path = unique_temp_path("compressed_output.jpg")
     image.save(temp_path, format="JPEG", quality=safe_quality, optimize=True)
     background_tasks.add_task(cleanup_file, temp_path)
-    return FileResponse(temp_path, media_type="image/jpeg", filename="compressed.jpg", background=background_tasks)
+    compressed_size = os.path.getsize(temp_path)
+    return FileResponse(
+        temp_path,
+        media_type="image/jpeg",
+        filename="compressed.jpg",
+        background=background_tasks,
+        headers={"X-Original-Size": str(len(contents)), "X-Compressed-Size": str(compressed_size)},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -570,7 +599,10 @@ async def watermark_image(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    watermark_type: str = "text",   # "text" or "image"
     text: str = "SAMPLE",
+    color: str = "#FFFFFF",        # only used when watermark_type == "text"
+    logo_file: UploadFile = File(None),  # required when watermark_type == "image"
     mode: str = "single",          # "single" or "tiled"
     position: str = "bottom-right",  # used only when mode == "single"
     opacity: int = 180,
@@ -588,43 +620,87 @@ async def watermark_image(
 
     safe_opacity = max(0, min(255, opacity))
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
-    draw = ImageDraw.Draw(overlay)
 
-    if mode == "tiled":
-        tile_font_size = max(18, image.width // 20)
-        tile_font = load_watermark_font(tile_font_size)
+    if watermark_type == "image":
+        if logo_file is None:
+            raise HTTPException(status_code=400, detail="Please upload a logo image to use as the watermark.")
+        logo_contents = await logo_file.read()
+        if len(logo_contents) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail="Logo file too large. Max size is 5MB.")
+        try:
+            logo = Image.open(io.BytesIO(logo_contents)).convert("RGBA")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid or corrupted logo image.")
 
-        bbox = draw.textbbox((0, 0), text, font=tile_font)
-        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        pad = 40
-        tile = Image.new("RGBA", (tw + pad * 2, th + pad * 2), (255, 255, 255, 0))
-        tile_draw = ImageDraw.Draw(tile)
-        tile_draw.text((pad, pad), text, font=tile_font, fill=(255, 255, 255, safe_opacity))
-        rotated_tile = tile.rotate(angle, expand=True)
-        tile_w, tile_h = rotated_tile.size
-
-        spacing_x = tile_w + 30
-        spacing_y = tile_h + 30
-        for y in range(-tile_h, image.height + tile_h, spacing_y):
-            for x in range(-tile_w, image.width + tile_w, spacing_x):
-                overlay.paste(rotated_tile, (x, y), rotated_tile)
+        if mode == "tiled":
+            logo_target_w = max(40, image.width // 8)
+            ratio = logo_target_w / logo.width
+            logo_resized = logo.resize((logo_target_w, max(1, int(logo.height * ratio))))
+            logo_resized = apply_opacity(logo_resized, safe_opacity)
+            rotated_logo = logo_resized.rotate(angle, expand=True)
+            tile_w, tile_h = rotated_logo.size
+            spacing_x = tile_w + 40
+            spacing_y = tile_h + 40
+            for y in range(-tile_h, image.height + tile_h, spacing_y):
+                for x in range(-tile_w, image.width + tile_w, spacing_x):
+                    overlay.paste(rotated_logo, (x, y), rotated_logo)
+        else:
+            logo_target_w = max(60, image.width // 5)
+            ratio = logo_target_w / logo.width
+            logo_resized = logo.resize((logo_target_w, max(1, int(logo.height * ratio))))
+            logo_resized = apply_opacity(logo_resized, safe_opacity)
+            lw, lh = logo_resized.size
+            margin = 20
+            positions = {
+                "top-left": (margin, margin),
+                "top-right": (image.width - lw - margin, margin),
+                "bottom-left": (margin, image.height - lh - margin),
+                "bottom-right": (image.width - lw - margin, image.height - lh - margin),
+                "center": ((image.width - lw) // 2, (image.height - lh) // 2),
+            }
+            xy = positions.get(position, positions["bottom-right"])
+            overlay.paste(logo_resized, xy, logo_resized)
     else:
-        font_size = max(24, image.width // 15)
-        font = load_watermark_font(font_size)
-        bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-        margin = 20
+        draw = ImageDraw.Draw(overlay)
+        text_color = hex_to_rgb(color)
 
-        positions = {
-            "top-left": (margin, margin),
-            "top-right": (image.width - text_width - margin, margin),
-            "bottom-left": (margin, image.height - text_height - margin),
-            "bottom-right": (image.width - text_width - margin, image.height - text_height - margin),
-            "center": ((image.width - text_width) // 2, (image.height - text_height) // 2),
-        }
-        xy = positions.get(position, positions["bottom-right"])
-        draw.text(xy, text, font=font, fill=(255, 255, 255, safe_opacity), stroke_width=3, stroke_fill=(0, 0, 0, safe_opacity))
+        if mode == "tiled":
+            tile_font_size = max(18, image.width // 20)
+            tile_font = load_watermark_font(tile_font_size)
+
+            bbox = draw.textbbox((0, 0), text, font=tile_font)
+            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+            pad = 40
+            tile = Image.new("RGBA", (tw + pad * 2, th + pad * 2), (255, 255, 255, 0))
+            tile_draw = ImageDraw.Draw(tile)
+            tile_draw.text((pad, pad), text, font=tile_font, fill=(*text_color, safe_opacity))
+            rotated_tile = tile.rotate(angle, expand=True)
+            tile_w, tile_h = rotated_tile.size
+
+            spacing_x = tile_w + 30
+            spacing_y = tile_h + 30
+            for y in range(-tile_h, image.height + tile_h, spacing_y):
+                for x in range(-tile_w, image.width + tile_w, spacing_x):
+                    overlay.paste(rotated_tile, (x, y), rotated_tile)
+        else:
+            font_size = max(24, image.width // 15)
+            font = load_watermark_font(font_size)
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            margin = 20
+
+            positions = {
+                "top-left": (margin, margin),
+                "top-right": (image.width - text_width - margin, margin),
+                "bottom-left": (margin, image.height - text_height - margin),
+                "bottom-right": (image.width - text_width - margin, image.height - text_height - margin),
+                "center": ((image.width - text_width) // 2, (image.height - text_height) // 2),
+            }
+            xy = positions.get(position, positions["bottom-right"])
+            # Stroke stays black regardless of chosen fill color, so the text
+            # stays readable against both light and dark parts of the photo.
+            draw.text(xy, text, font=font, fill=(*text_color, safe_opacity), stroke_width=3, stroke_fill=(0, 0, 0, safe_opacity))
 
     watermarked = Image.alpha_composite(image, overlay).convert("RGB")
     temp_path = unique_temp_path("watermarked.jpg")

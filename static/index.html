@@ -15,7 +15,7 @@
 <meta name="twitter:title" content="File Desk — File Processing & Utilities">
 <meta name="twitter:description" content="Compress images, convert documents to PDF, watermark photos, generate QR codes, and grab a free API key.">
 <meta name="twitter:image" content="/static/preview-banner.png">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23A855F7'/%3E%3Cstop offset='1' stop-color='%2322D3C7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='%230D0B1A'/%3E%3Crect x='8' y='6' width='16' height='20' rx='2' fill='none' stroke='url(%23g)' stroke-width='2.4'/%3E%3Cline x1='12' y1='13' x2='20' y2='13' stroke='url(%23g)' stroke-width='1.6'/%3E%3Cline x1='12' y1='18' x2='18' y2='18' stroke='url(%23g)' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23A855F7%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%2322D3C7%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%230D0B1A%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%276%27%20width%3D%2716%27%20height%3D%2720%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%272.4%27%2F%3E%3Cline%20x1%3D%2712%27%20y1%3D%2713%27%20x2%3D%2720%27%20y2%3D%2713%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%271.6%27%2F%3E%3Cline%20x1%3D%2712%27%20y1%3D%2718%27%20x2%3D%2718%27%20y2%3D%2718%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%271.6%27%2F%3E%3C%2Fsvg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -213,7 +213,7 @@
     height: 150px;
     margin-bottom: 18px;
   }
-  .helper-panel h3 {
+  .helper-panel h2 {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     letter-spacing: 1.5px;
@@ -500,6 +500,35 @@
     pointer-events: none;
     font-size: 18px;
   }
+  .wm-preview-logo {
+    position: absolute;
+    width: 50px;
+    height: auto;
+    pointer-events: none;
+  }
+
+  input[type="color"] {
+    width: 60px;
+    height: 38px;
+    padding: 3px;
+    cursor: pointer;
+  }
+
+  .size-compare {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .size-reduction {
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .result-link-secondary {
+    color: var(--muted) !important;
+    font-size: 12px !important;
+    text-decoration: underline;
+  }
 
   .api-docs {
     margin-top: 18px;
@@ -698,8 +727,24 @@
     <input type="file" id="watermark-file" accept="image/*">
     <div class="file-hint">Accepted: JPG, PNG, and other common image formats. Max size: 5MB.</div>
 
-    <label for="watermark-text">Watermark text</label>
-    <input type="text" id="watermark-text" value="SAMPLE" maxlength="60" oninput="updateWatermarkPreview()">
+    <label id="watermark-type-label">Watermark type</label>
+    <div class="mode-toggle" role="group" aria-labelledby="watermark-type-label">
+      <div class="mode-btn active" id="type-text" onclick="setWatermarkType('text')">Text</div>
+      <div class="mode-btn" id="type-image" onclick="setWatermarkType('image')">Image / logo</div>
+    </div>
+
+    <div id="watermark-text-row">
+      <label for="watermark-text">Watermark text</label>
+      <input type="text" id="watermark-text" value="SAMPLE" maxlength="60" oninput="updateWatermarkPreview()">
+      <label for="watermark-color">Text color</label>
+      <input type="color" id="watermark-color" value="#ffffff" oninput="updateWatermarkPreview()">
+    </div>
+
+    <div id="watermark-logo-row" style="display:none;">
+      <label for="watermark-logo-file">Logo image</label>
+      <input type="file" id="watermark-logo-file" accept="image/*">
+      <div class="file-hint">PNG with a transparent background works best. Max size: 5MB.</div>
+    </div>
 
     <label id="watermark-mode-label">Mode</label>
     <div class="mode-toggle" role="group" aria-labelledby="watermark-mode-label">
@@ -813,7 +858,7 @@
     <circle class="glow-dot" cx="90" cy="130" r="3" fill="#A855F7"/>
     <circle class="glow-dot" cx="215" cy="35" r="3" fill="#22D3C7"/>
   </svg>
-  <h3 id="helper-title">Getting started</h3>
+  <h2 id="helper-title">Getting started</h2>
   <ul class="helper-tips" id="helper-tips">
     <li>Pick a tool from the sidebar, or click a card, to begin.</li>
     <li>Every file is processed for this session only — nothing is kept afterward.</li>
@@ -942,14 +987,38 @@
   }
 
   const activeResultUrls = {};
-  function showResult(containerId, blob, filename) {
+  const activeOriginalUrls = {};
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  function showResult(containerId, blob, filename, options = {}) {
     if (activeResultUrls[containerId]) {
       URL.revokeObjectURL(activeResultUrls[containerId]);
     }
+    if (activeOriginalUrls[containerId]) {
+      URL.revokeObjectURL(activeOriginalUrls[containerId]);
+      delete activeOriginalUrls[containerId];
+    }
     const url = URL.createObjectURL(blob);
     activeResultUrls[containerId] = url;
-    document.getElementById(containerId).innerHTML =
-      `<a class="result-link" href="${url}" download="${filename}">Download ${filename}</a>`;
+
+    let html = '';
+    if (options.sizeInfoHtml) {
+      html += options.sizeInfoHtml;
+    }
+    html += `<a class="result-link" href="${url}" download="${filename}">Download ${filename}</a>`;
+
+    if (options.originalFile) {
+      const originalUrl = URL.createObjectURL(options.originalFile);
+      activeOriginalUrls[containerId] = originalUrl;
+      html += `<br><a class="result-link result-link-secondary" href="${originalUrl}" download="${options.originalFile.name}">Download original (${options.originalFile.name})</a>`;
+    }
+
+    document.getElementById(containerId).innerHTML = html;
   }
 
   // Clears a previous result the moment any setting changes — so an old
@@ -960,6 +1029,10 @@
     if (activeResultUrls[containerId]) {
       URL.revokeObjectURL(activeResultUrls[containerId]);
       delete activeResultUrls[containerId];
+    }
+    if (activeOriginalUrls[containerId]) {
+      URL.revokeObjectURL(activeOriginalUrls[containerId]);
+      delete activeOriginalUrls[containerId];
     }
     if (statusId) {
       const statusEl = document.getElementById(statusId);
@@ -1011,15 +1084,25 @@
       showError('compress-result', 'Quality must be a number between 1 and 95.');
       return;
     }
+    const originalFile = fileInput.files[0];
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', originalFile);
     setButtonLoading('compress-btn', true);
     try {
       const res = await fetch(`/compress-image?quality=${quality}`, { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-compress', false); showError('compress-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-compress', true);
-      showResult('compress-result', blob, 'compressed.jpg');
+
+      const originalSize = parseInt(res.headers.get('X-Original-Size'), 10);
+      const compressedSize = parseInt(res.headers.get('X-Compressed-Size'), 10);
+      let sizeInfoHtml = '';
+      if (!isNaN(originalSize) && !isNaN(compressedSize)) {
+        const reduction = originalSize > 0 ? Math.round((1 - compressedSize / originalSize) * 100) : 0;
+        sizeInfoHtml = `<div class="size-compare">${formatBytes(originalSize)} → ${formatBytes(compressedSize)} <span class="size-reduction">(${reduction}% smaller)</span></div>`;
+      }
+
+      showResult('compress-result', blob, 'compressed.jpg', { sizeInfoHtml, originalFile });
     } catch {
       showStatus('status-compress', false);
       showError('compress-result', 'Network error. Please try again.');
@@ -1031,15 +1114,16 @@
   async function convertDocumentToPdf() {
     const fileInput = document.getElementById('docpdf-file');
     if (!fileInput.files[0]) { showError('docpdf-result', 'Please choose a document file first.'); return; }
+    const originalFile = fileInput.files[0];
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', originalFile);
     setButtonLoading('docpdf-btn', true);
     try {
       const res = await fetch('/convert-document-to-pdf', { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-docpdf', false); showError('docpdf-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-docpdf', true);
-      showResult('docpdf-result', blob, 'converted_document.pdf');
+      showResult('docpdf-result', blob, 'converted_document.pdf', { originalFile });
     } catch {
       showStatus('status-docpdf', false);
       showError('docpdf-result', 'Network error. Please try again.');
@@ -1051,15 +1135,16 @@
   async function convertImage() {
     const fileInput = document.getElementById('convert-file');
     if (!fileInput.files[0]) { showError('convert-result', 'Please choose an image file first.'); return; }
+    const originalFile = fileInput.files[0];
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', originalFile);
     setButtonLoading('convert-btn', true);
     try {
       const res = await fetch('/convert-image-to-pdf', { method: 'POST', body: formData });
       if (!res.ok) { showStatus('status-convert', false); showError('convert-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-convert', true);
-      showResult('convert-result', blob, 'converted.pdf');
+      showResult('convert-result', blob, 'converted.pdf', { originalFile });
     } catch {
       showStatus('status-convert', false);
       showError('convert-result', 'Network error. Please try again.');
@@ -1069,6 +1154,9 @@
   }
 
   let watermarkMode = 'single';
+  let watermarkType = 'text';
+  let cachedLogoDataUrl = null;
+
   function setWatermarkMode(mode) {
     watermarkMode = mode;
     document.getElementById('mode-single').classList.toggle('active', mode === 'single');
@@ -1079,10 +1167,31 @@
     clearResult('watermark-result', 'status-watermark');
   }
 
+  function setWatermarkType(type) {
+    watermarkType = type;
+    document.getElementById('type-text').classList.toggle('active', type === 'text');
+    document.getElementById('type-image').classList.toggle('active', type === 'image');
+    document.getElementById('watermark-text-row').style.display = type === 'text' ? 'block' : 'none';
+    document.getElementById('watermark-logo-row').style.display = type === 'image' ? 'block' : 'none';
+    updateWatermarkPreview();
+    clearResult('watermark-result', 'status-watermark');
+  }
+
+  document.getElementById('watermark-logo-file').addEventListener('change', function () {
+    const file = this.files[0];
+    clearResult('watermark-result', 'status-watermark');
+    if (!file) { cachedLogoDataUrl = null; updateWatermarkPreview(); return; }
+    const reader = new FileReader();
+    reader.onload = e => { cachedLogoDataUrl = e.target.result; updateWatermarkPreview(); };
+    reader.readAsDataURL(file);
+  });
+
   // Drives the live preview box so people can see exactly what "Visibility"
-  // and "Tilt" do instead of having to interpret raw numbers.
+  // and "Tilt" do instead of having to interpret raw numbers — and now
+  // shows the real uploaded logo when in image mode, not just placeholder text.
   function updateWatermarkPreview() {
     const text = document.getElementById('watermark-text').value || 'SAMPLE';
+    const color = document.getElementById('watermark-color').value;
     const opacityPercent = parseInt(document.getElementById('watermark-opacity').value, 10);
     const angle = parseInt(document.getElementById('watermark-angle').value, 10);
     const position = document.getElementById('watermark-position').value;
@@ -1094,11 +1203,39 @@
     const opacityFraction = opacityPercent / 100;
     box.innerHTML = '';
 
+    const usingLogo = watermarkType === 'image';
+    if (usingLogo && !cachedLogoDataUrl) {
+      const hint = document.createElement('div');
+      hint.className = 'wm-preview-tile';
+      hint.style.opacity = 0.6;
+      hint.style.top = '50%';
+      hint.style.left = '50%';
+      hint.style.transform = 'translate(-50%, -50%)';
+      hint.style.fontSize = '13px';
+      hint.textContent = 'Upload a logo to preview';
+      box.appendChild(hint);
+      return;
+    }
+
+    function makeTile() {
+      if (usingLogo) {
+        const img = document.createElement('img');
+        img.src = cachedLogoDataUrl;
+        img.className = 'wm-preview-logo';
+        img.style.opacity = opacityFraction;
+        return img;
+      } else {
+        const el = document.createElement('div');
+        el.className = 'wm-preview-tile';
+        el.textContent = text;
+        el.style.opacity = opacityFraction;
+        el.style.color = color;
+        return el;
+      }
+    }
+
     if (watermarkMode === 'single') {
-      const el = document.createElement('div');
-      el.className = 'wm-preview-tile';
-      el.textContent = text;
-      el.style.opacity = opacityFraction;
+      const el = makeTile();
       const positions = {
         'bottom-right': { bottom: '12px', right: '14px' },
         'bottom-left': { bottom: '12px', left: '14px' },
@@ -1115,27 +1252,28 @@
       const boxWidth = boxRect.width || 600;
       const boxHeight = 160;
 
-      // Rough tile size estimate (font ~16px, plus padding) — doesn't need
-      // to be exact, just close enough that the grid reads as "full coverage".
-      const approxTextWidth = text.length * 10 + 24;
-      const approxTextHeight = 34;
+      let tileW, tileH;
+      if (usingLogo) {
+        tileW = 50;
+        tileH = 50;
+      } else {
+        tileW = text.length * 10 + 24;
+        tileH = 34;
+      }
       const angleRad = Math.abs(angle) * Math.PI / 180;
-      const rotatedW = Math.abs(approxTextWidth * Math.cos(angleRad)) + Math.abs(approxTextHeight * Math.sin(angleRad));
-      const rotatedH = Math.abs(approxTextWidth * Math.sin(angleRad)) + Math.abs(approxTextHeight * Math.cos(angleRad));
+      const rotatedW = Math.abs(tileW * Math.cos(angleRad)) + Math.abs(tileH * Math.sin(angleRad));
+      const rotatedH = Math.abs(tileW * Math.sin(angleRad)) + Math.abs(tileH * Math.cos(angleRad));
 
       const spacingX = rotatedW + 24;
       const spacingY = rotatedH + 24;
 
       for (let y = -rotatedH; y < boxHeight + rotatedH; y += spacingY) {
         for (let x = -rotatedW; x < boxWidth + rotatedW; x += spacingX) {
-          const el = document.createElement('div');
-          el.className = 'wm-preview-tile';
-          el.textContent = text;
-          el.style.opacity = opacityFraction;
+          const el = makeTile();
           el.style.transform = `rotate(${angle}deg)`;
           el.style.top = y + 'px';
           el.style.left = x + 'px';
-          el.style.fontSize = '15px';
+          if (!usingLogo) el.style.fontSize = '15px';
           box.appendChild(el);
         }
       }
@@ -1145,16 +1283,25 @@
   async function watermarkImage() {
     const fileInput = document.getElementById('watermark-file');
     const text = document.getElementById('watermark-text').value;
+    const color = document.getElementById('watermark-color').value;
     const opacityPercent = parseInt(document.getElementById('watermark-opacity').value, 10);
     const opacity = Math.round((opacityPercent / 100) * 255);  // backend expects 0-255
     const position = document.getElementById('watermark-position').value;
     const angle = document.getElementById('watermark-angle').value;
+    const logoFileInput = document.getElementById('watermark-logo-file');
+
     if (!fileInput.files[0]) { showError('watermark-result', 'Please choose an image file first.'); return; }
-    if (!text.trim()) { showError('watermark-result', 'Please enter watermark text.'); return; }
+    if (watermarkType === 'text' && !text.trim()) { showError('watermark-result', 'Please enter watermark text.'); return; }
+    if (watermarkType === 'image' && !logoFileInput.files[0]) { showError('watermark-result', 'Please choose a logo image first.'); return; }
+
+    const originalFile = fileInput.files[0];
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', originalFile);
+    if (watermarkType === 'image') {
+      formData.append('logo_file', logoFileInput.files[0]);
+    }
     const params = new URLSearchParams({
-      text, mode: watermarkMode, opacity, position, angle
+      watermark_type: watermarkType, text, color, mode: watermarkMode, opacity, position, angle
     });
     setButtonLoading('watermark-btn', true);
     try {
@@ -1162,7 +1309,7 @@
       if (!res.ok) { showStatus('status-watermark', false); showError('watermark-result', await extractErrorDetail(res)); return; }
       const blob = await res.blob();
       showStatus('status-watermark', true);
-      showResult('watermark-result', blob, 'watermarked.jpg');
+      showResult('watermark-result', blob, 'watermarked.jpg', { originalFile });
     } catch {
       showStatus('status-watermark', false);
       showError('watermark-result', 'Network error. Please try again.');
@@ -1231,7 +1378,7 @@
   wireClearOnChange(['compress-file', 'compress-quality'], 'compress-result', 'status-compress');
   wireClearOnChange(['docpdf-file'], 'docpdf-result', 'status-docpdf');
   wireClearOnChange(['convert-file'], 'convert-result', 'status-convert');
-  wireClearOnChange(['watermark-file', 'watermark-text', 'watermark-position', 'watermark-angle', 'watermark-opacity'], 'watermark-result', 'status-watermark');
+  wireClearOnChange(['watermark-file', 'watermark-text', 'watermark-color', 'watermark-position', 'watermark-angle', 'watermark-opacity'], 'watermark-result', 'status-watermark');
   wireClearOnChange(['qr-text', 'qr-size', 'qr-error-correction'], 'qrcode-result', null);
 </script>
 
