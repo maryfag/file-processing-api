@@ -3,24 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Desk</title>
+  <title>File Desk - Online Utility Platform</title>
   <style>
-    :root {
-      --bg-canvas: #f3f6f9;
-      --bg-surface: #ffffff;
-      --bg-sidebar: #2f4157;
-      --color-primary: #2f4157;
-      --color-secondary: #567c8e;
-      --color-accent: #a2c1d1;
-      --color-tint: #e3ecf2;
-      --color-border: #c7d9e5;
-      --text-dark: #1e293b;
-      --text-muted: #64748b;
-      --text-light: #ffffff;
-      --radius-sm: 6px;
-      --radius-md: 8px;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
@@ -28,584 +12,503 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-canvas);
-      color: var(--text-dark);
-      display: flex;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
       min-height: 100vh;
-    }
-
-    /* Sidebar Navigation */
-    .sidebar {
-      width: 240px;
-      background-color: var(--bg-sidebar);
-      color: var(--text-light);
       display: flex;
       flex-direction: column;
-      padding: 32px 16px;
-      flex-shrink: 0;
     }
 
-    .brand {
-      font-size: 1.1rem;
+    header {
+      background-color: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: 0.05em;
-      padding: 0 12px 24px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      margin-bottom: 24px;
+      color: #38bdf8;
     }
 
-    .nav-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .nav-item button {
+    .container {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1rem;
       width: 100%;
-      text-align: left;
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.7);
-      padding: 10px 12px;
+      flex: 1;
+    }
+
+    /* Navigation Tabs */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.375rem;
       font-size: 0.875rem;
       font-weight: 500;
-      border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
+      transition: all 0.2s ease;
     }
 
-    .nav-item button:hover {
-      background-color: rgba(255, 255, 255, 0.08);
-      color: var(--text-light);
+    .tab-btn:hover {
+      background: #334155;
+      color: #f8fafc;
     }
 
-    .nav-item button.active {
-      background-color: var(--color-secondary);
-      color: var(--text-light);
+    .tab-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
     }
 
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 12px;
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.5);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Main Area */
-    .main-content {
-      flex: 1;
-      padding: 48px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .header-bar {
-      margin-bottom: 24px;
-    }
-
-    .header-bar h1 {
-      font-size: 1.35rem;
-      font-weight: 600;
-      color: var(--color-primary);
-    }
-
-    .tool-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--color-tint);
-      border-radius: var(--radius-md);
-      padding: 36px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-    }
-
-    .tab-panel {
+    /* Tool Card Container */
+    .tool-panel {
       display: none;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     }
 
-    .tab-panel.active {
+    .tool-panel.active {
       display: block;
     }
 
-    /* UI Components */
-    .form-group {
-      margin-bottom: 24px;
+    .tool-panel h2 {
+      font-size: 1.125rem;
+      margin-bottom: 1.25rem;
+      color: #f8fafc;
     }
 
-    .form-group:last-child {
-      margin-bottom: 0;
+    .form-group {
+      margin-bottom: 1.25rem;
     }
 
     label {
       display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-    }
-
-    .help-text {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #cbd5e1;
     }
 
     input[type="text"],
     input[type="number"],
     select {
       width: 100%;
-      padding: 10px 14px;
-      font-size: 0.9rem;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      background-color: #ffffff;
-      color: var(--text-dark);
+      padding: 0.625rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      color: #f8fafc;
+      font-size: 0.875rem;
       outline: none;
-      transition: border-color 0.15s ease;
     }
 
     input[type="text"]:focus,
     input[type="number"]:focus,
     select:focus {
-      border-color: var(--color-secondary);
+      border-color: #38bdf8;
     }
 
-    .dropzone {
-      border: 2px dashed var(--color-accent);
-      background-color: var(--color-tint);
-      border-radius: var(--radius-sm);
-      padding: 32px;
+    .file-input-wrapper {
+      border: 2px dashed #334155;
+      border-radius: 0.5rem;
+      padding: 2rem;
       text-align: center;
+      background: #0f172a;
       cursor: pointer;
-      transition: background-color 0.15s ease, border-color 0.15s ease;
+      transition: border-color 0.2s;
     }
 
-    .dropzone:hover {
-      background-color: #dce7f0;
-      border-color: var(--color-secondary);
+    .file-input-wrapper:hover {
+      border-color: #38bdf8;
     }
 
-    .dropzone p {
-      font-size: 0.875rem;
-      color: var(--text-dark);
-      margin-bottom: 4px;
-    }
-
-    .dropzone span {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    input[type="file"] {
+    .file-input-wrapper input[type="file"] {
       display: none;
     }
 
-    .file-name-display {
-      margin-top: 8px;
-      font-size: 0.8rem;
-      color: var(--color-secondary);
-      font-weight: 500;
+    .file-input-label {
+      color: #94a3b8;
+      font-size: 0.875rem;
+      cursor: pointer;
     }
 
-    .slider-container {
+    .file-input-label span {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .range-group {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 1rem;
     }
 
     input[type="range"] {
       flex: 1;
-      accent-color: var(--color-secondary);
-    }
-
-    .range-value {
-      font-size: 0.875rem;
-      font-weight: 600;
-      width: 40px;
+      accent-color: #38bdf8;
     }
 
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 1rem;
     }
 
-    /* Buttons */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 20px;
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.375rem;
       font-size: 0.875rem;
       font-weight: 600;
-      border-radius: var(--radius-sm);
-      border: none;
       cursor: pointer;
-      transition: background-color 0.15s ease;
+      transition: background 0.2s;
     }
 
-    .btn-primary {
-      background-color: var(--color-primary);
-      color: var(--text-light);
-    }
-
-    .btn-primary:hover {
-      background-color: var(--color-secondary);
+    .btn:hover {
+      background: #0369a1;
     }
 
     .btn-secondary {
-      background-color: var(--color-tint);
-      color: var(--color-primary);
+      background: #334155;
+      color: #f8fafc;
     }
 
     .btn-secondary:hover {
-      background-color: var(--color-border);
+      background: #475569;
     }
 
-    /* Results section */
-    .result-box {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-tint);
-      display: none;
-    }
-
-    .result-box.active {
-      display: block;
+    /* Output & Preview Sections */
+    .preview-container {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #334155;
     }
 
     .preview-box {
       width: 100%;
-      max-height: 240px;
-      background: var(--bg-canvas);
-      border-radius: var(--radius-sm);
-      margin-bottom: 16px;
+      max-height: 300px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      border: 1px solid var(--color-tint);
+      margin-bottom: 1rem;
     }
 
     .preview-box img {
       max-width: 100%;
-      max-height: 240px;
+      max-height: 300px;
       object-fit: contain;
     }
 
     code, pre {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.825rem;
-      background-color: var(--color-tint);
-      color: var(--color-primary);
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      display: block;
+      font-family: monospace;
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      color: #38bdf8;
+      font-size: 0.85rem;
       overflow-x: auto;
+      display: block;
       white-space: pre-wrap;
     }
 
-    .api-key-output {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .api-key-output input {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.75rem;
+      color: #64748b;
+      border-top: 1px solid #1e293b;
     }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="brand">FILE DESK</div>
-    <ul class="nav-list">
-      <li class="nav-item">
-        <button class="active" onclick="switchTab('compress', this)">Compress Image</button>
-      </li>
-      <li class="nav-item">
-        <button onclick="switchTab('doc-pdf', this)">Document to PDF</button>
-      </li>
-      <li class="nav-item">
-        <button onclick="switchTab('img-pdf', this)">Image to PDF</button>
-      </li>
-      <li class="nav-item">
-        <button onclick="switchTab('watermark', this)">Watermark Image</button>
-      </li>
-      <li class="nav-item">
-        <button onclick="switchTab('qr-code', this)">QR Code</button>
-      </li>
-      <li class="nav-item">
-        <button onclick="switchTab('api-keys', this)">API Access</button>
-      </li>
-    </ul>
-    <div class="sidebar-footer">
-      Environment: <span id="env-label">Production</span>
-    </div>
-  </aside>
+  <header>
+    <h1>FILE DESK</h1>
+    <span id="env-badge" style="font-size: 0.75rem; color: #94a3b8; background: #0f172a; padding: 0.25rem 0.5rem; border-radius: 0.25rem; border: 1px solid #334155;">Target: Loading...</span>
+  </header>
 
-  <!-- Main Content Area -->
-  <main class="main-content">
+  <div class="container">
     
-    <div class="header-bar">
-      <h1 id="tab-title">Compress Image</h1>
+    <!-- Tool Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('compress', this)">Compress Image</button>
+      <button class="tab-btn" onclick="showTab('doc-pdf', this)">Document to PDF</button>
+      <button class="tab-btn" onclick="showTab('img-pdf', this)">Image to PDF</button>
+      <button class="tab-btn" onclick="showTab('watermark', this)">Watermark Image</button>
+      <button class="tab-btn" onclick="showTab('qr-code', this)">QR Code Generator</button>
+      <button class="tab-btn" onclick="showTab('api-key', this)">API Keys</button>
     </div>
 
-    <div class="tool-card">
-
-      <!-- Compress Image Panel -->
-      <section id="compress" class="tab-panel active">
-        <form onsubmit="handleAction(event, 'compress')">
-          <div class="form-group">
-            <label>Select Image</label>
-            <div class="dropzone" onclick="triggerFile('compress-input')">
-              <p>Click to select or drag and drop image file</p>
-              <span>PNG, JPG, WEBP up to 5MB</span>
-            </div>
-            <input type="file" id="compress-input" accept="image/*" onchange="updateFileName(this, 'compress-file-name')">
-            <div id="compress-file-name" class="file-name-display"></div>
-          </div>
-
-          <div class="form-group">
-            <label>Compression Level</label>
-            <div class="slider-container">
-              <input type="range" id="quality-slider" min="1" max="95" value="80" oninput="document.getElementById('quality-val').textContent = this.value + '%'">
-              <span id="quality-val" class="range-value">80%</span>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary">Compress</button>
-        </form>
-
-        <div id="compress-result" class="result-box">
-          <div class="preview-box">
-            <img id="compress-preview" src="" alt="Compressed Preview">
-          </div>
-          <button class="btn btn-secondary" onclick="triggerDownload()">Download File</button>
-        </div>
-      </section>
-
-      <!-- Document to PDF Panel -->
-      <section id="doc-pdf" class="tab-panel">
-        <form onsubmit="handleAction(event, 'doc-pdf')">
-          <div class="form-group">
-            <label>Select Document</label>
-            <div class="dropzone" onclick="triggerFile('doc-input')">
-              <p>Click to select or drag and drop document</p>
-              <span>DOCX, PPTX, TXT</span>
-            </div>
-            <input type="file" id="doc-input" accept=".docx,.pptx,.txt" onchange="updateFileName(this, 'doc-file-name')">
-            <div id="doc-file-name" class="file-name-display"></div>
-          </div>
-
-          <button type="submit" class="btn btn-primary">Convert to PDF</button>
-        </form>
-
-        <div id="doc-pdf-result" class="result-box">
-          <p class="help-text" style="margin-bottom: 12px;">Conversion complete.</p>
-          <button class="btn btn-secondary" onclick="triggerDownload()">Download PDF</button>
-        </div>
-      </section>
-
-      <!-- Image to PDF Panel -->
-      <section id="img-pdf" class="tab-panel">
-        <form onsubmit="handleAction(event, 'img-pdf')">
-          <div class="form-group">
-            <label>Select Image</label>
-            <div class="dropzone" onclick="triggerFile('img-pdf-input')">
-              <p>Click to select image file</p>
-              <span>PNG, JPG, WEBP</span>
-            </div>
-            <input type="file" id="img-pdf-input" accept="image/*" onchange="updateFileName(this, 'img-pdf-file-name')">
-            <div id="img-pdf-file-name" class="file-name-display"></div>
-          </div>
-
-          <button type="submit" class="btn btn-primary">Generate PDF</button>
-        </form>
-
-        <div id="img-pdf-result" class="result-box">
-          <button class="btn btn-secondary" onclick="triggerDownload()">Download PDF</button>
-        </div>
-      </section>
-
-      <!-- Watermark Image Panel -->
-      <section id="watermark" class="tab-panel">
-        <form onsubmit="handleAction(event, 'watermark')">
-          <div class="form-group">
-            <label>Select Image</label>
-            <div class="dropzone" onclick="triggerFile('watermark-input')">
-              <p>Click to select image file</p>
-              <span>PNG, JPG, WEBP</span>
-            </div>
-            <input type="file" id="watermark-input" accept="image/*" onchange="updateFileName(this, 'watermark-file-name')">
-            <div id="watermark-file-name" class="file-name-display"></div>
-          </div>
-
-          <div class="form-group">
-            <label>Watermark Text</label>
-            <input type="text" id="watermark-text" placeholder="CONFIDENTIAL">
-          </div>
-
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Opacity</label>
-              <div class="slider-container">
-                <input type="range" id="opacity-slider" min="10" max="100" value="50" oninput="document.getElementById('opacity-val').textContent = this.value + '%'">
-                <span id="opacity-val" class="range-value">50%</span>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Placement Style</label>
-              <select id="watermark-style">
-                <option value="single">Single (Centered)</option>
-                <option value="tiled">Tiled Overlay</option>
-              </select>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary">Apply Watermark</button>
-        </form>
-
-        <div id="watermark-result" class="result-box">
-          <div class="preview-box">
-            <img id="watermark-preview" src="" alt="Watermark Preview">
-          </div>
-          <button class="btn btn-secondary" onclick="triggerDownload()">Download Watermarked Image</button>
-        </div>
-      </section>
-
-      <!-- QR Code Panel -->
-      <section id="qr-code" class="tab-panel">
-        <form onsubmit="handleAction(event, 'qr-code')">
-          <div class="form-group">
-            <label>Target URL or Text</label>
-            <input type="text" id="qr-payload" placeholder="https://example.com" required>
-          </div>
-
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Error Correction Level</label>
-              <select id="qr-ecc">
-                <option value="L">Low (7%)</option>
-                <option value="M" selected>Medium (15%)</option>
-                <option value="Q">Quartile (25%)</option>
-                <option value="H">High (30%)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Dimensions (px)</label>
-              <input type="number" id="qr-size" value="250" min="100" max="1000">
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary">Generate Code</button>
-        </form>
-
-        <div id="qr-code-result" class="result-box">
-          <div class="preview-box">
-            <img id="qr-preview" src="" alt="QR Code Output">
-          </div>
-          <button class="btn btn-secondary" onclick="triggerDownload()">Download Image</button>
-        </div>
-      </section>
-
-      <!-- API Access Panel -->
-      <section id="api-keys" class="tab-panel">
+    <!-- 1. Compress Image -->
+    <div id="compress" class="tool-panel active">
+      <h2>Compress Image</h2>
+      <form onsubmit="handleProcess(event, 'compress-out')">
         <div class="form-group">
-          <label>API Key Authorization</label>
-          <div class="api-key-output">
-            <input type="text" id="api-key-display" value="fd_live_8f92a1c84b10e93a" readonly>
-            <button class="btn btn-secondary" onclick="generateNewKey()">Generate New Key</button>
+          <label>Upload Image (Max 5MB)</label>
+          <div class="file-input-wrapper" onclick="document.getElementById('compress-file').click()">
+            <span class="file-input-label">Click to <span>browse file</span> or drop here</span>
+            <input type="file" id="compress-file" accept="image/*" onchange="showFileName(this, 'compress-fn')">
+            <div id="compress-fn" style="margin-top: 0.5rem; font-size: 0.8rem; color: #38bdf8;"></div>
           </div>
-          <p class="help-text">Include key in request headers as <code>X-API-Key</code>.</p>
         </div>
 
-        <div class="form-group" style="margin-top: 32px;">
-          <label>Endpoint Documentation</label>
-          <pre><span id="base-url-docs">POST https://file-processing-api-u7y5.vercel.app/api/v1/process</span>
-Content-Type: multipart/form-data
-X-API-Key: your_api_key
-
-Params:
-  action: "compress" | "watermark" | "convert" | "qrcode"
-  file: [Binary File]
-          </pre>
+        <div class="form-group">
+          <label>Quality (1% - 95%)</label>
+          <div class="range-group">
+            <input type="range" id="quality-val" min="1" max="95" value="80" oninput="document.getElementById('q-num').textContent = this.value + '%'">
+            <span id="q-num" style="font-weight: 600; width: 45px;">80%</span>
+          </div>
         </div>
-      </section>
 
+        <button type="submit" class="btn">Compress Image</button>
+      </form>
+
+      <div id="compress-out" class="preview-container" style="display: none;">
+        <div class="preview-box">
+          <img id="compress-img-preview" src="" alt="Compressed Preview">
+        </div>
+        <button class="btn btn-secondary" onclick="downloadFile()">Download Compressed Image</button>
+      </div>
     </div>
-  </main>
+
+    <!-- 2. Document to PDF -->
+    <div id="doc-pdf" class="tool-panel">
+      <h2>Document to PDF</h2>
+      <form onsubmit="handleProcess(event, 'doc-out')">
+        <div class="form-group">
+          <label>Select Document (.docx, .pptx, .txt)</label>
+          <div class="file-input-wrapper" onclick="document.getElementById('doc-file').click()">
+            <span class="file-input-label">Click to <span>select document</span></span>
+            <input type="file" id="doc-file" accept=".docx,.pptx,.txt" onchange="showFileName(this, 'doc-fn')">
+            <div id="doc-fn" style="margin-top: 0.5rem; font-size: 0.8rem; color: #38bdf8;"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Convert to PDF</button>
+      </form>
+
+      <div id="doc-out" class="preview-container" style="display: none;">
+        <p style="font-size: 0.875rem; color: #4ade80; margin-bottom: 1rem;">Document processed successfully.</p>
+        <button class="btn btn-secondary" onclick="downloadFile()">Download PDF</button>
+      </div>
+    </div>
+
+    <!-- 3. Image to PDF -->
+    <div id="img-pdf" class="tool-panel">
+      <h2>Image to PDF</h2>
+      <form onsubmit="handleProcess(event, 'imgpdf-out')">
+        <div class="form-group">
+          <label>Select Image File</label>
+          <div class="file-input-wrapper" onclick="document.getElementById('imgpdf-file').click()">
+            <span class="file-input-label">Click to <span>select image</span></span>
+            <input type="file" id="imgpdf-file" accept="image/*" onchange="showFileName(this, 'imgpdf-fn')">
+            <div id="imgpdf-fn" style="margin-top: 0.5rem; font-size: 0.8rem; color: #38bdf8;"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Generate PDF</button>
+      </form>
+
+      <div id="imgpdf-out" class="preview-container" style="display: none;">
+        <button class="btn btn-secondary" onclick="downloadFile()">Download PDF</button>
+      </div>
+    </div>
+
+    <!-- 4. Watermark Image -->
+    <div id="watermark" class="tool-panel">
+      <h2>Watermark Image</h2>
+      <form onsubmit="handleProcess(event, 'watermark-out')">
+        <div class="form-group">
+          <label>Base Image</label>
+          <div class="file-input-wrapper" onclick="document.getElementById('wm-file').click()">
+            <span class="file-input-label">Click to <span>select photo</span></span>
+            <input type="file" id="wm-file" accept="image/*" onchange="showFileName(this, 'wm-fn')">
+            <div id="wm-fn" style="margin-top: 0.5rem; font-size: 0.8rem; color: #38bdf8;"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Watermark Text / Logo Text</label>
+          <input type="text" id="wm-text" placeholder="CONFIDENTIAL">
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Opacity</label>
+            <div class="range-group">
+              <input type="range" id="wm-opacity" min="10" max="100" value="50" oninput="document.getElementById('wm-op-val').textContent = this.value + '%'">
+              <span id="wm-op-val" style="font-weight: 600; width: 45px;">50%</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Placement Style</label>
+            <select id="wm-style">
+              <option value="single">Single Centered</option>
+              <option value="tiled">Tiled Overlay</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Apply Watermark</button>
+      </form>
+
+      <div id="watermark-out" class="preview-container" style="display: none;">
+        <div class="preview-box">
+          <img id="wm-preview" src="" alt="Watermark Preview">
+        </div>
+        <button class="btn btn-secondary" onclick="downloadFile()">Download Watermarked File</button>
+      </div>
+    </div>
+
+    <!-- 5. QR Code Generator -->
+    <div id="qr-code" class="tool-panel">
+      <h2>QR Code Generator</h2>
+      <form onsubmit="handleProcess(event, 'qr-out')">
+        <div class="form-group">
+          <label>Text or URL</label>
+          <input type="text" id="qr-input" placeholder="https://file-processing-api-u7y5.vercel.app" required>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Error Correction Level</label>
+            <select id="qr-ecc">
+              <option value="L">Low (7%)</option>
+              <option value="M" selected>Medium (15%)</option>
+              <option value="Q">Quartile (25%)</option>
+              <option value="H">High (30%)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Image Size (px)</label>
+            <input type="number" id="qr-size" value="250" min="100" max="1000">
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Generate QR Code</button>
+      </form>
+
+      <div id="qr-out" class="preview-container" style="display: none;">
+        <div class="preview-box">
+          <img id="qr-preview-img" src="" alt="Generated QR Code">
+        </div>
+        <button class="btn btn-secondary" onclick="downloadFile()">Download QR Code</button>
+      </div>
+    </div>
+
+    <!-- 6. API Key Generation -->
+    <div id="api-key" class="tool-panel">
+      <h2>API Key & Documentation</h2>
+      <div class="form-group">
+        <label>Your API Key</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="api-key-val" value="fd_live_9a8b7c6d5e4f3a2b" readonly style="font-family: monospace;">
+          <button class="btn btn-secondary" onclick="generateKey()">Generate New</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label>Endpoint Documentation</label>
+        <pre id="api-docs-box">POST https://file-processing-api-u7y5.vercel.app/api/v1/process
+Headers:
+  X-API-Key: your_api_key
+  Content-Type: multipart/form-data
+
+Body:
+  action: "compress" | "watermark" | "convert" | "qrcode"
+  file: [Binary]
+        </pre>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    File Desk API Platform
+  </footer>
 
   <script>
-    // Tab Navigation Logic
-    function switchTab(tabId, element) {
-      const panels = document.querySelectorAll('.tab-panel');
-      const buttons = document.querySelectorAll('.nav-item button');
-      
+    function showTab(tabId, element) {
+      const panels = document.querySelectorAll('.tool-panel');
+      const buttons = document.querySelectorAll('.tab-btn');
+
       panels.forEach(panel => panel.classList.remove('active'));
       buttons.forEach(btn => btn.classList.remove('active'));
-      
+
       document.getElementById(tabId).classList.add('active');
       element.classList.add('active');
-      
-      document.getElementById('tab-title').textContent = element.textContent;
     }
 
-    // Trigger file input click
-    function triggerFile(id) {
-      document.getElementById(id).click();
-    }
-
-    // Update displayed file name on upload
-    function updateFileName(input, displayId) {
-      const display = document.getElementById(displayId);
+    function showFileName(input, targetId) {
+      const target = document.getElementById(targetId);
       if (input.files && input.files[0]) {
-        display.textContent = 'Selected: ' + input.files[0].name;
+        target.textContent = 'Selected: ' + input.files[0].name;
       } else {
-        display.textContent = '';
+        target.textContent = '';
       }
     }
 
-    // Dynamic Base URL detection for API tab
-    function setDynamicBaseURL() {
-      const host = window.location.origin;
-      const docsElement = document.getElementById('base-url-docs');
-      const envLabel = document.getElementById('env-label');
-      
-      if (host.includes('vercel.app') || host.includes('render.com')) {
-        docsElement.textContent = `POST ${host}/api/v1/process\nContent-Type: multipart/form-data\nX-API-Key: your_api_key\n\nParams:\n  action: "compress" | "watermark" | "convert" | "qrcode"\n  file: [Binary File]`;
-        envLabel.textContent = host.includes('vercel.app') ? 'Vercel' : 'Render';
-      } else {
-        envLabel.textContent = 'Localhost';
+    function handleProcess(e, resultId) {
+      e.preventDefault();
+      const outputElem = document.getElementById(resultId);
+      if (outputElem) {
+        outputElem.style.display = 'block';
       }
     }
 
-    // Action handlers (Simulated UI response)
-    function handleAction(event, actionType) {
-      event.preventDefault();
-      const resultBox = document.getElementById(`${actionType}-result`);
-      if (resultBox) {
-        resultBox.classList.add('active');
-      }
-    }
-
-    function generateNewKey() {
-      const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+    function generateKey() {
+      const rand = Array.from(crypto.getRandomValues(new Uint8Array(8)))
         .map(b => b.toString(16).padStart(2, '0')).join('');
-      document.getElementById('api-key-display').value = `fd_live_${randomHex}`;
+      document.getElementById('api-key-val').value = 'fd_live_' + rand;
     }
 
-    function triggerDownload() {
-      alert('File ready for download.');
+    function downloadFile() {
+      alert('Downloading processed file...');
     }
 
-    // Initialize
-    window.onload = setDynamicBaseURL;
+    // Dynamic environment URL configuration
+    function initEnv() {
+      const origin = window.location.origin;
+      const badge = document.getElementById('env-badge');
+      const docsBox = document.getElementById('api-docs-box');
+
+      if (origin.includes('vercel.app') || origin.includes('render.com')) {
+        badge.textContent = origin.includes('vercel.app') ? 'Vercel Deployment' : 'Render Deployment';
+        docsBox.textContent = `POST ${origin}/api/v1/process\nHeaders:\n  X-API-Key: your_api_key\n  Content-Type: multipart/form-data\n\nBody:\n  action: "compress" | "watermark" | "convert" | "qrcode"\n  file: [Binary]`;
+      } else {
+        badge.textContent = 'Local Engine / Github Static';
+      }
+    }
+
+    window.onload = initEnv;
   </script>
 </body>
 </html>
