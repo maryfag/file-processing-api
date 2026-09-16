@@ -15,19 +15,19 @@
 <meta name="twitter:title" content="File Desk — File Processing & Utilities">
 <meta name="twitter:description" content="Compress images, convert documents to PDF, watermark photos, generate QR codes, and grab a free API key.">
 <meta name="twitter:image" content="/static/preview-banner.png">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%3E%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%230EA5A4%27%2F%3E%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%235EEAD4%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%27url%28%23g%29%27%20width%3D%2732%27%20height%3D%2732%27%2F%3E%3C%2Fsvg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23A855F7%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%2322D3C7%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%230D0B1A%27%2F%3E%3Crect%20x%3D%278%27%20y%3D%276%27%20width%3D%2716%27%20height%3D%2720%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%272.4%27%2F%3E%3Cline%20x1%3D%2712%27%20y1%3D%2713%27%20x2%3D%2720%27%20y2%3D%2713%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%271.6%27%2F%3E%3Cline%20x1%3D%2712%27%20y1%3D%2718%27%20x2%3D%2718%27%20y2%3D%2718%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%271.6%27%2F%3E%3C%2Fsvg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-top: #0B1220;
-    --bg-bottom: #0B1220;
-    --purple: #0EA5A4;
-    --teal: #0EA5A4;
-    --text: #E5E7EB;
-    --muted: #9CA3AF;
-    --coral: #F87171;
-    --panel: rgba(51, 65, 85, 0.3);
-    --panel-border: rgba(14, 165, 164, 0.3);
+    --bg-top: #0D0B1A;
+    --bg-bottom: #241242;
+    --purple: #A855F7;
+    --teal: #22D3C7;
+    --text: #F3EFFF;
+    --muted: #c9c2e0;
+    --coral: #FF6B6B;
+    --panel: rgba(255,255,255,0.04);
+    --panel-border: rgba(168,85,247,0.35);
   }
   * { box-sizing: border-box; }
   body {
@@ -69,8 +69,8 @@
   /* Sidebar */
   .sidebar {
     width: 230px;
-    background: rgba(51, 65, 85, 0.4);
-    border-right: 1px solid rgba(14, 165, 164, 0.3);
+    background: rgba(255,255,255,0.03);
+    border-right: 1px solid rgba(168,85,247,0.25);
     display: flex;
     flex-direction: column;
     padding: 24px 0;
@@ -90,7 +90,7 @@
     gap: 8px;
     padding: 9px 16px 9px 14px;
     border-radius: 22px;
-    background: rgba(11, 18, 32, 0.85);
+    background: rgba(20,16,38,0.75);
     backdrop-filter: blur(6px);
     border: 1px solid var(--panel-border);
     color: var(--muted);
@@ -124,7 +124,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(11, 18, 32, 0.7);
+    background: rgba(13,11,26,0.6);
     z-index: 15;
   }
   .sidebar-overlay.active { display: block; }
@@ -138,9 +138,9 @@
       transform: translateX(-100%);
       z-index: 18;
       box-shadow: 0 4px 40px rgba(0,0,0,0.6);
-      background: linear-gradient(180deg, #0B1220 0%, #0F1930 100%);
+      background: linear-gradient(180deg, #14102A 0%, #241242 100%);
       backdrop-filter: blur(10px);
-      border-right: 1px solid rgba(14, 165, 164, 0.3);
+      border-right: 1px solid rgba(168,85,247,0.4);
     }
     .sidebar.open { transform: translateX(0); }
     .main {
@@ -153,9 +153,9 @@
     font-weight: 700;
     letter-spacing: 1px;
     padding: 0 20px 20px;
-    border-bottom: 1px solid rgba(229, 231, 235, 0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     margin-bottom: 12px;
-    background: linear-gradient(90deg, #0EA5A4, #5EEAD4);
+    background: linear-gradient(90deg, var(--purple), var(--teal));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -178,15 +178,15 @@
     color: var(--muted);
     border-left: 3px solid transparent;
   }
-  .nav-item:hover { background: rgba(14, 165, 164, 0.1); color: var(--text); }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
   .nav-item.active {
-    background: rgba(14, 165, 164, 0.15);
+    background: rgba(168,85,247,0.12);
     border-left: 3px solid var(--teal);
     color: var(--text);
   }
   .sidebar-bottom {
     margin-top: auto;
-    border-top: 1px solid rgba(229, 231, 235, 0.1);
+    border-top: 1px solid rgba(255,255,255,0.08);
     padding-top: 8px;
   }
 
@@ -243,7 +243,7 @@
     height: 6px;
     border-radius: 50%;
     background: var(--teal);
-    box-shadow: 0 0 6px rgba(14, 165, 164, 0.8);
+    box-shadow: 0 0 6px rgba(34,211,199,0.8);
   }
 
   @keyframes floatY {
@@ -273,7 +273,7 @@
     font-size: 28px;
     font-weight: 700;
     margin: 0 0 6px;
-    background: linear-gradient(90deg, #0EA5A4, #5EEAD4);
+    background: linear-gradient(90deg, var(--purple), var(--teal));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -287,7 +287,7 @@
     gap: 16px;
   }
   .tool-card {
-    background: rgba(51, 65, 85, 0.4);
+    background: rgba(13,11,26,0.72);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     padding: 18px 20px;
@@ -323,15 +323,15 @@
   input[type="text"], input[type="number"], textarea, input[type="file"], select {
     width: 100%;
     padding: 9px 12px;
-    border: 1px solid rgba(14, 165, 164, 0.2);
+    border: 1px solid rgba(255,255,255,0.15);
     border-radius: 8px;
-    background: rgba(51, 65, 85, 0.3);
+    background: rgba(255,255,255,0.05);
     color: var(--text);
     font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
   }
-  select option { background: #0F1930; color: var(--text); }
-  input::placeholder, textarea::placeholder { color: rgba(229, 231, 235, 0.35); }
+  select option { background: var(--bg-bottom); color: var(--text); }
+  input::placeholder, textarea::placeholder { color: rgba(243,239,255,0.35); }
   textarea { min-height: 90px; resize: vertical; }
 
   input[type="range"] {
@@ -356,8 +356,8 @@
     text-align: center;
     padding: 8px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(14, 165, 164, 0.2);
-    background: rgba(51, 65, 85, 0.2);
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.03);
     color: var(--muted);
     font-size: 13px;
     font-weight: 500;
@@ -366,24 +366,24 @@
   .mode-btn.active {
     border-color: var(--teal);
     color: var(--teal);
-    box-shadow: 0 0 12px rgba(14, 165, 164, 0.4);
+    box-shadow: 0 0 12px rgba(34,211,199,0.4);
   }
 
   button.action {
     margin-top: 18px;
-    background: linear-gradient(90deg, #0EA5A4, #5EEAD4);
-    color: #0B1220;
+    background: linear-gradient(90deg, var(--purple), var(--teal));
+    color: var(--bg-top);
     border: none;
     border-radius: 20px;
     padding: 10px 22px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 0 16px rgba(14, 165, 164, 0.5);
+    box-shadow: 0 0 16px rgba(168,85,247,0.5);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
   button.action:hover {
-    box-shadow: 0 0 24px rgba(94, 234, 212, 0.7);
+    box-shadow: 0 0 24px rgba(34,211,199,0.7);
     transform: translateY(-1px);
   }
   button.action:disabled {
@@ -406,12 +406,12 @@
   .status-tag.cleared {
     border: 1px solid var(--teal);
     color: var(--teal);
-    box-shadow: 0 0 14px rgba(14, 165, 164, 0.6);
+    box-shadow: 0 0 14px rgba(34,211,199,0.6);
   }
   .status-tag.flagged {
     border: 1px solid var(--coral);
     color: var(--coral);
-    box-shadow: 0 0 14px rgba(248, 113, 113, 0.6);
+    box-shadow: 0 0 14px rgba(255,107,107,0.6);
   }
 
   .result-link {
@@ -431,8 +431,8 @@
   .key-box {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
-    background: rgba(51, 65, 85, 0.3);
-    border: 1px solid rgba(14, 165, 164, 0.2);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
     padding: 12px 14px;
     word-break: break-all;
@@ -443,7 +443,7 @@
   .copy-btn {
     margin-left: 10px;
     background: none;
-    border: 1px solid rgba(229, 231, 235, 0.2);
+    border: 1px solid rgba(255,255,255,0.2);
     color: var(--muted);
     border-radius: 14px;
     padding: 3px 10px;
@@ -463,9 +463,9 @@
   }
   .format-warning {
     font-size: 12px;
-    color: #FBBF24;
-    background: rgba(251, 191, 36, 0.1);
-    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #E8B84B;
+    background: rgba(232,184,75,0.08);
+    border: 1px solid rgba(232,184,75,0.3);
     border-radius: 6px;
     padding: 10px 12px;
     margin-top: 10px;
@@ -479,8 +479,8 @@
     margin: 16px 0;
     border-radius: 10px;
     overflow: hidden;
-    background: linear-gradient(135deg, #0F2F2F 0%, #061919 100%);
-    border: 1px solid rgba(14, 165, 164, 0.2);
+    background: linear-gradient(135deg, #3a2a5c 0%, #1c1436 100%);
+    border: 1px solid rgba(255,255,255,0.1);
   }
   .wm-preview-box::before {
     content: 'PREVIEW';
@@ -490,12 +490,12 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     letter-spacing: 1.5px;
-    color: rgba(229, 231, 235, 0.3);
+    color: rgba(255,255,255,0.3);
   }
   .wm-preview-tile {
     position: absolute;
     font-weight: 700;
-    color: #E5E7EB;
+    color: #ffffff;
     white-space: nowrap;
     pointer-events: none;
     font-size: 18px;
@@ -532,7 +532,7 @@
 
   .api-docs {
     margin-top: 18px;
-    border-top: 1px solid rgba(229, 231, 235, 0.1);
+    border-top: 1px solid rgba(255,255,255,0.1);
     padding-top: 14px;
   }
   .api-docs summary {
@@ -551,7 +551,7 @@
   .api-docs-body p { margin: 8px 0; }
   .api-docs-body code {
     font-family: 'IBM Plex Mono', monospace;
-    background: rgba(51, 65, 85, 0.3);
+    background: rgba(255,255,255,0.06);
     padding: 2px 6px;
     border-radius: 4px;
     color: var(--text);
@@ -565,8 +565,8 @@
   .api-endpoint-list li { margin-bottom: 8px; }
   .api-docs-body pre {
     font-family: 'IBM Plex Mono', monospace;
-    background: rgba(51, 65, 85, 0.3);
-    border: 1px solid rgba(14, 165, 164, 0.2);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 6px;
     padding: 10px 12px;
     font-size: 12px;
@@ -583,42 +583,42 @@
   <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <!-- Compress -->
     <g class="icon-group" transform="translate(280,150)">
-      <rect x="-26" y="-26" width="52" height="52" rx="8" fill="none" stroke="#0EA5A4" stroke-width="3"/>
-      <path d="M -10 -10 L -2 -2 M -10 -10 L -10 -3 M -10 -10 L -3 -10" stroke="#0EA5A4" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M 10 10 L 2 2 M 10 10 L 10 3 M 10 10 L 3 10" stroke="#0EA5A4" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <text x="0" y="56" fill="#0EA5A4" font-size="17" text-anchor="middle">COMPRESS IMAGES</text>
+      <rect x="-26" y="-26" width="52" height="52" rx="8" fill="none" stroke="#22D3C7" stroke-width="3"/>
+      <path d="M -10 -10 L -2 -2 M -10 -10 L -10 -3 M -10 -10 L -3 -10" stroke="#22D3C7" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M 10 10 L 2 2 M 10 10 L 10 3 M 10 10 L 3 10" stroke="#22D3C7" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <text x="0" y="56" fill="#22D3C7" font-size="17" text-anchor="middle">COMPRESS IMAGES</text>
     </g>
     <!-- Watermark -->
     <g class="icon-group" transform="translate(1180,230)">
-      <rect x="-30" y="-22" width="60" height="44" rx="6" fill="none" stroke="#5EEAD4" stroke-width="3"/>
-      <text x="0" y="6" fill="#5EEAD4" font-size="16" text-anchor="middle" transform="rotate(-25)">SAMPLE</text>
-      <text x="0" y="52" fill="#5EEAD4" font-size="17" text-anchor="middle">WATERMARK PHOTOS</text>
+      <rect x="-30" y="-22" width="60" height="44" rx="6" fill="none" stroke="#A855F7" stroke-width="3"/>
+      <text x="0" y="6" fill="#A855F7" font-size="16" text-anchor="middle" transform="rotate(-25)">SAMPLE</text>
+      <text x="0" y="52" fill="#A855F7" font-size="17" text-anchor="middle">WATERMARK PHOTOS</text>
     </g>
     <!-- Convert image to PDF -->
     <g class="icon-group" transform="translate(230,520)">
-      <rect x="-22" y="-26" width="30" height="40" rx="3" fill="none" stroke="#0EA5A4" stroke-width="3"/>
-      <circle cx="-15" cy="-14" r="3" fill="none" stroke="#0EA5A4" stroke-width="2.5"/>
-      <path d="M 4 -6 L 22 -6 M 16 -12 L 22 -6 L 16 0" stroke="#0EA5A4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="26" y="-24" width="26" height="36" rx="3" fill="none" stroke="#0EA5A4" stroke-width="3"/>
-      <text x="15" y="46" fill="#0EA5A4" font-size="17" text-anchor="middle">CONVERT TO PDF</text>
+      <rect x="-22" y="-26" width="30" height="40" rx="3" fill="none" stroke="#22D3C7" stroke-width="3"/>
+      <circle cx="-15" cy="-14" r="3" fill="none" stroke="#22D3C7" stroke-width="2.5"/>
+      <path d="M 4 -6 L 22 -6 M 16 -12 L 22 -6 L 16 0" stroke="#22D3C7" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="26" y="-24" width="26" height="36" rx="3" fill="none" stroke="#22D3C7" stroke-width="3"/>
+      <text x="15" y="46" fill="#22D3C7" font-size="17" text-anchor="middle">CONVERT TO PDF</text>
     </g>
     <!-- Document to PDF -->
     <g class="icon-group" transform="translate(1300,560)">
-      <rect x="-20" y="-26" width="30" height="40" rx="3" fill="none" stroke="#5EEAD4" stroke-width="3"/>
-      <line x1="-14" y1="-16" x2="2" y2="-16" stroke="#5EEAD4" stroke-width="2"/>
-      <line x1="-14" y1="-8" x2="2" y2="-8" stroke="#5EEAD4" stroke-width="2"/>
-      <line x1="-14" y1="0" x2="-4" y2="0" stroke="#5EEAD4" stroke-width="2"/>
-      <path d="M 12 -6 L 28 -6 M 22 -12 L 28 -6 L 22 0" stroke="#5EEAD4" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="32" y="-24" width="26" height="36" rx="3" fill="none" stroke="#5EEAD4" stroke-width="3"/>
-      <text x="20" y="46" fill="#5EEAD4" font-size="17" text-anchor="middle">DOCUMENT TO PDF</text>
+      <rect x="-20" y="-26" width="30" height="40" rx="3" fill="none" stroke="#A855F7" stroke-width="3"/>
+      <line x1="-14" y1="-16" x2="2" y2="-16" stroke="#A855F7" stroke-width="2"/>
+      <line x1="-14" y1="-8" x2="2" y2="-8" stroke="#A855F7" stroke-width="2"/>
+      <line x1="-14" y1="0" x2="-4" y2="0" stroke="#A855F7" stroke-width="2"/>
+      <path d="M 12 -6 L 28 -6 M 22 -12 L 28 -6 L 22 0" stroke="#A855F7" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="32" y="-24" width="26" height="36" rx="3" fill="none" stroke="#A855F7" stroke-width="3"/>
+      <text x="20" y="46" fill="#A855F7" font-size="17" text-anchor="middle">DOCUMENT TO PDF</text>
     </g>
     <!-- API key -->
     <g class="icon-group" transform="translate(760,760)">
-      <circle cx="-14" cy="0" r="12" fill="none" stroke="#0EA5A4" stroke-width="3"/>
-      <line x1="-2" y1="0" x2="24" y2="0" stroke="#0EA5A4" stroke-width="3"/>
-      <line x1="14" y1="0" x2="14" y2="10" stroke="#0EA5A4" stroke-width="3"/>
-      <line x1="22" y1="0" x2="22" y2="8" stroke="#0EA5A4" stroke-width="3"/>
-      <text x="4" y="42" fill="#0EA5A4" font-size="17" text-anchor="middle">GET AN API KEY</text>
+      <circle cx="-14" cy="0" r="12" fill="none" stroke="#22D3C7" stroke-width="3"/>
+      <line x1="-2" y1="0" x2="24" y2="0" stroke="#22D3C7" stroke-width="3"/>
+      <line x1="14" y1="0" x2="14" y2="10" stroke="#22D3C7" stroke-width="3"/>
+      <line x1="22" y1="0" x2="22" y2="8" stroke="#22D3C7" stroke-width="3"/>
+      <text x="4" y="42" fill="#22D3C7" font-size="17" text-anchor="middle">GET AN API KEY</text>
     </g>
   </svg>
 </div>
@@ -653,32 +653,32 @@
   <div class="panel active" id="panel-home">
     <div class="home-grid">
       <div class="tool-card" data-goto="compress">
-        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="5" fill="none" stroke="#0EA5A4" stroke-width="2.2"/><path d="M15 15 L19 19 M15 15 L15 20 M15 15 L20 15" stroke="#0EA5A4" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M25 25 L21 21 M25 25 L25 20 M25 25 L20 25" stroke="#0EA5A4" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="5" fill="none" stroke="#22D3C7" stroke-width="2.2"/><path d="M15 15 L19 19 M15 15 L15 20 M15 15 L20 15" stroke="#22D3C7" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M25 25 L21 21 M25 25 L25 20 M25 25 L20 25" stroke="#22D3C7" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
         <div class="tool-card-title">Compress image</div>
         <div class="tool-card-desc">Shrink a photo's file size with an adjustable quality slider.</div>
       </div>
       <div class="tool-card" data-goto="docpdf">
-        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="8" y="6" width="16" height="22" rx="2" fill="none" stroke="#5EEAD4" stroke-width="2.2"/><line x1="12" y1="13" x2="20" y2="13" stroke="#5EEAD4" stroke-width="1.5"/><line x1="12" y1="17" x2="20" y2="17" stroke="#5EEAD4" stroke-width="1.5"/><line x1="12" y1="21" x2="16" y2="21" stroke="#5EEAD4" stroke-width="1.5"/><path d="M 24 14 L 32 14 M 28 10 L 32 14 L 28 18" stroke="#5EEAD4" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="8" y="6" width="16" height="22" rx="2" fill="none" stroke="#A855F7" stroke-width="2.2"/><line x1="12" y1="13" x2="20" y2="13" stroke="#A855F7" stroke-width="1.4"/><line x1="12" y1="18" x2="20" y2="18" stroke="#A855F7" stroke-width="1.4"/><path d="M25 17 L31 17 M28 14 L31 17 L28 20" stroke="#A855F7" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <div class="tool-card-title">Document to PDF</div>
         <div class="tool-card-desc">Turn a Word or PowerPoint file into a formatted PDF.</div>
       </div>
       <div class="tool-card" data-goto="convert">
-        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="6" y="8" width="16" height="22" rx="2" fill="none" stroke="#0EA5A4" stroke-width="2.2"/><circle cx="11" cy="15" r="1.8" fill="none" stroke="#0EA5A4" stroke-width="1.5"/><path d="M 6 22 L 12 16 L 16 20 L 22 14" stroke="#0EA5A4" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M 24 14 L 32 14 M 28 10 L 32 14 L 28 18" stroke="#0EA5A4" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="6" y="8" width="16" height="22" rx="2" fill="none" stroke="#22D3C7" stroke-width="2.2"/><circle cx="11" cy="15" r="1.8" fill="none" stroke="#22D3C7" stroke-width="1.6"/><path d="M25 19 L31 19 M28 16 L31 19 L28 22" stroke="#22D3C7" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <div class="tool-card-title">Image to PDF</div>
         <div class="tool-card-desc">Turn a single image into a one-page PDF file.</div>
       </div>
       <div class="tool-card" data-goto="watermark">
-        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="9" y="10" width="22" height="20" rx="3" fill="none" stroke="#5EEAD4" stroke-width="2.2"/><text x="20" y="24" fill="#5EEAD4" font-size="10" font-weight="bold" text-anchor="middle" transform="rotate(-25 20 24)">MARK</text></svg>
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="9" y="10" width="22" height="20" rx="3" fill="none" stroke="#A855F7" stroke-width="2.2"/><text x="20" y="24" fill="#A855F7" font-size="8" text-anchor="middle" transform="rotate(-20 20 20)">TAG</text></svg>
         <div class="tool-card-title">Watermark image</div>
         <div class="tool-card-desc">Stamp text on a photo, once in a corner or tiled across it.</div>
       </div>
       <div class="tool-card" data-goto="qrcode">
-        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="7" y="7" width="10" height="10" fill="none" stroke="#0EA5A4" stroke-width="2"/><rect x="23" y="7" width="10" height="10" fill="none" stroke="#0EA5A4" stroke-width="2"/><rect x="7" y="23" width="10" height="10" fill="none" stroke="#0EA5A4" stroke-width="2"/><rect x="25" y="25" width="8" height="8" fill="none" stroke="#0EA5A4" stroke-width="1.5"/><circle cx="29" cy="29" r="1.5" fill="#0EA5A4"/></svg>
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><rect x="7" y="7" width="10" height="10" fill="none" stroke="#22D3C7" stroke-width="2"/><rect x="23" y="7" width="10" height="10" fill="none" stroke="#22D3C7" stroke-width="2"/><rect x="7" y="23" width="10" height="10" fill="none" stroke="#22D3C7" stroke-width="2"/><rect x="23" y="23" width="4" height="4" fill="#22D3C7"/><rect x="29" y="29" width="4" height="4" fill="#22D3C7"/><rect x="23" y="29" width="4" height="4" fill="#22D3C7"/></svg>
         <div class="tool-card-title">QR code generator</div>
         <div class="tool-card-desc">Turn any text or link into a downloadable QR code.</div>
       </div>
       <div class="tool-card" data-goto="apikey">
-        <svg class="tool-card-icon" viewBox="0 0 40 40"><circle cx="13" cy="20" r="7" fill="none" stroke="#0EA5A4" stroke-width="2.2"/><line x1="20" y1="20" x2="32" y2="20" stroke="#0EA5A4" stroke-width="2.2"/><line x1="26" y1="16" x2="26" y2="24" stroke="#0EA5A4" stroke-width="2.2"/><line x1="30" y1="18" x2="30" y2="22" stroke="#0EA5A4" stroke-width="2.2"/></svg>
+        <svg class="tool-card-icon" viewBox="0 0 40 40"><circle cx="13" cy="20" r="7" fill="none" stroke="#22D3C7" stroke-width="2.2"/><line x1="20" y1="20" x2="32" y2="20" stroke="#22D3C7" stroke-width="2.2"/><line x1="26" y1="20" x2="26" y2="26" stroke="#22D3C7" stroke-width="2.2"/><line x1="31" y1="20" x2="31" y2="25" stroke="#22D3C7" stroke-width="2.2"/></svg>
         <div class="tool-card-title">Get your API key</div>
         <div class="tool-card-desc">Generate a key instantly to use in your own projects.</div>
       </div>
@@ -752,7 +752,8 @@
       <div class="mode-btn" id="mode-tiled" onclick="setWatermarkMode('tiled')">Tiled pattern</div>
     </div>
 
-    <!-- Live preview -->
+    <!-- Live preview — so people can just watch it change instead of
+         needing to understand what "opacity" or "angle" mean. -->
     <div class="wm-preview-box" id="wm-preview-box">
       <div class="wm-preview-tile" id="wm-preview-tile">SAMPLE</div>
     </div>
@@ -846,16 +847,16 @@
 
 <div class="helper-panel">
   <svg class="helper-illustration" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
-    <rect class="float-a" x="60" y="55" width="46" height="58" rx="6" fill="none" stroke="#5EEAD4" stroke-width="2.5" opacity="0.8"/>
-    <rect class="float-b" x="120" y="35" width="46" height="58" rx="6" fill="none" stroke="#0EA5A4" stroke-width="2.5" opacity="0.85"/>
-    <rect class="float-c" x="180" y="60" width="46" height="58" rx="6" fill="none" stroke="#5EEAD4" stroke-width="2.5" opacity="0.7"/>
-    <line class="float-a" x1="70" y1="70" x2="96" y2="70" stroke="#5EEAD4" stroke-width="2.5" opacity="0.6"/>
-    <line class="float-a" x1="70" y1="80" x2="96" y2="80" stroke="#5EEAD4" stroke-width="2.5" opacity="0.6"/>
-    <line class="float-b" x1="130" y1="50" x2="156" y2="50" stroke="#0EA5A4" stroke-width="2.5" opacity="0.6"/>
-    <line class="float-b" x1="130" y1="60" x2="156" y2="60" stroke="#0EA5A4" stroke-width="2.5" opacity="0.6"/>
-    <circle class="glow-dot" cx="150" cy="20" r="3" fill="#0EA5A4"/>
-    <circle class="glow-dot" cx="90" cy="130" r="3" fill="#5EEAD4"/>
-    <circle class="glow-dot" cx="215" cy="35" r="3" fill="#0EA5A4"/>
+    <rect class="float-a" x="60" y="55" width="46" height="58" rx="6" fill="none" stroke="#A855F7" stroke-width="2.5" opacity="0.8"/>
+    <rect class="float-b" x="120" y="35" width="46" height="58" rx="6" fill="none" stroke="#22D3C7" stroke-width="2.5" opacity="0.85"/>
+    <rect class="float-c" x="180" y="60" width="46" height="58" rx="6" fill="none" stroke="#A855F7" stroke-width="2.5" opacity="0.7"/>
+    <line class="float-a" x1="70" y1="70" x2="96" y2="70" stroke="#A855F7" stroke-width="2.5" opacity="0.6"/>
+    <line class="float-a" x1="70" y1="80" x2="96" y2="80" stroke="#A855F7" stroke-width="2.5" opacity="0.6"/>
+    <line class="float-b" x1="130" y1="50" x2="156" y2="50" stroke="#22D3C7" stroke-width="2.5" opacity="0.6"/>
+    <line class="float-b" x1="130" y1="60" x2="156" y2="60" stroke="#22D3C7" stroke-width="2.5" opacity="0.6"/>
+    <circle class="glow-dot" cx="150" cy="20" r="3" fill="#22D3C7"/>
+    <circle class="glow-dot" cx="90" cy="130" r="3" fill="#A855F7"/>
+    <circle class="glow-dot" cx="215" cy="35" r="3" fill="#22D3C7"/>
   </svg>
   <h2 id="helper-title">Getting started</h2>
   <ul class="helper-tips" id="helper-tips">
@@ -945,6 +946,8 @@
     closeSidebar();
   }
 
+  // Fill in the API docs with whichever domain is actually serving this page
+  // right now (Render or Vercel) rather than a hardcoded URL.
   const currentOrigin = window.location.origin;
   const baseUrlEl = document.getElementById('api-base-url');
   const curlEl = document.getElementById('api-sample-curl');
@@ -996,8 +999,388 @@
     if (activeResultUrls[containerId]) {
       URL.revokeObjectURL(activeResultUrls[containerId]);
     }
-    // Rest of the JavaScript continues here...
+    if (activeOriginalUrls[containerId]) {
+      URL.revokeObjectURL(activeOriginalUrls[containerId]);
+      delete activeOriginalUrls[containerId];
+    }
+    const url = URL.createObjectURL(blob);
+    activeResultUrls[containerId] = url;
+
+    let html = '';
+    if (options.sizeInfoHtml) {
+      html += options.sizeInfoHtml;
+    }
+    html += `<a class="result-link" href="${url}" download="${filename}">Download ${filename}</a>`;
+
+    if (options.originalFile) {
+      const originalUrl = URL.createObjectURL(options.originalFile);
+      activeOriginalUrls[containerId] = originalUrl;
+      html += `<br><a class="result-link result-link-secondary" href="${originalUrl}" download="${options.originalFile.name}">Download original (${options.originalFile.name})</a>`;
+    }
+
+    document.getElementById(containerId).innerHTML = html;
   }
+
+  // Clears a previous result the moment any setting changes — so an old
+  // download never sits there looking valid once the inputs no longer match it.
+  function clearResult(containerId, statusId) {
+    const container = document.getElementById(containerId);
+    if (container) container.innerHTML = '';
+    if (activeResultUrls[containerId]) {
+      URL.revokeObjectURL(activeResultUrls[containerId]);
+      delete activeResultUrls[containerId];
+    }
+    if (activeOriginalUrls[containerId]) {
+      URL.revokeObjectURL(activeOriginalUrls[containerId]);
+      delete activeOriginalUrls[containerId];
+    }
+    if (statusId) {
+      const statusEl = document.getElementById(statusId);
+      if (statusEl) statusEl.style.display = 'none';
+    }
+  }
+
+  function wireClearOnChange(inputIds, containerId, statusId) {
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', () => clearResult(containerId, statusId));
+      el.addEventListener('change', () => clearResult(containerId, statusId));
+    });
+  }
+
+  async function extractErrorDetail(res) {
+    try {
+      const data = await res.json();
+      return data.detail || 'Something went wrong.';
+    } catch {
+      return 'Something went wrong.';
+    }
+  }
+
+  function showError(containerId, message) {
+    document.getElementById(containerId).innerHTML = `<div class="error-msg">${message}</div>`;
+  }
+
+  function setButtonLoading(btnId, isLoading, loadingText = 'Processing...') {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.originalText = btn.textContent;
+      btn.textContent = loadingText;
+      btn.disabled = true;
+    } else {
+      btn.textContent = btn.dataset.originalText || btn.textContent;
+      btn.disabled = false;
+    }
+  }
+
+  async function compressImage() {
+    const fileInput = document.getElementById('compress-file');
+    const qualityInput = document.getElementById('compress-quality');
+    if (!fileInput.files[0]) { showError('compress-result', 'Please choose an image file first.'); return; }
+    let quality = parseInt(qualityInput.value, 10);
+    if (isNaN(quality) || quality < 1 || quality > 95) {
+      showError('compress-result', 'Quality must be a number between 1 and 95.');
+      return;
+    }
+    const originalFile = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', originalFile);
+    setButtonLoading('compress-btn', true);
+    try {
+      const res = await fetch(`/compress-image?quality=${quality}`, { method: 'POST', body: formData });
+      if (!res.ok) { showStatus('status-compress', false); showError('compress-result', await extractErrorDetail(res)); return; }
+      const blob = await res.blob();
+      showStatus('status-compress', true);
+
+      const originalSize = parseInt(res.headers.get('X-Original-Size'), 10);
+      const compressedSize = parseInt(res.headers.get('X-Compressed-Size'), 10);
+      let sizeInfoHtml = '';
+      if (!isNaN(originalSize) && !isNaN(compressedSize)) {
+        const reduction = originalSize > 0 ? Math.round((1 - compressedSize / originalSize) * 100) : 0;
+        sizeInfoHtml = `<div class="size-compare">${formatBytes(originalSize)} → ${formatBytes(compressedSize)} <span class="size-reduction">(${reduction}% smaller)</span></div>`;
+      }
+
+      showResult('compress-result', blob, 'compressed.jpg', { sizeInfoHtml, originalFile });
+    } catch {
+      showStatus('status-compress', false);
+      showError('compress-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('compress-btn', false);
+    }
+  }
+
+  async function convertDocumentToPdf() {
+    const fileInput = document.getElementById('docpdf-file');
+    if (!fileInput.files[0]) { showError('docpdf-result', 'Please choose a document file first.'); return; }
+    const originalFile = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', originalFile);
+    setButtonLoading('docpdf-btn', true);
+    try {
+      const res = await fetch('/convert-document-to-pdf', { method: 'POST', body: formData });
+      if (!res.ok) { showStatus('status-docpdf', false); showError('docpdf-result', await extractErrorDetail(res)); return; }
+      const blob = await res.blob();
+      showStatus('status-docpdf', true);
+      showResult('docpdf-result', blob, 'converted_document.pdf', { originalFile });
+    } catch {
+      showStatus('status-docpdf', false);
+      showError('docpdf-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('docpdf-btn', false);
+    }
+  }
+
+  async function convertImage() {
+    const fileInput = document.getElementById('convert-file');
+    if (!fileInput.files[0]) { showError('convert-result', 'Please choose an image file first.'); return; }
+    const originalFile = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', originalFile);
+    setButtonLoading('convert-btn', true);
+    try {
+      const res = await fetch('/convert-image-to-pdf', { method: 'POST', body: formData });
+      if (!res.ok) { showStatus('status-convert', false); showError('convert-result', await extractErrorDetail(res)); return; }
+      const blob = await res.blob();
+      showStatus('status-convert', true);
+      showResult('convert-result', blob, 'converted.pdf', { originalFile });
+    } catch {
+      showStatus('status-convert', false);
+      showError('convert-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('convert-btn', false);
+    }
+  }
+
+  let watermarkMode = 'single';
+  let watermarkType = 'text';
+  let cachedLogoDataUrl = null;
+
+  function setWatermarkMode(mode) {
+    watermarkMode = mode;
+    document.getElementById('mode-single').classList.toggle('active', mode === 'single');
+    document.getElementById('mode-tiled').classList.toggle('active', mode === 'tiled');
+    document.getElementById('watermark-position-row').style.display = mode === 'single' ? 'block' : 'none';
+    document.getElementById('watermark-angle-row').style.display = mode === 'tiled' ? 'block' : 'none';
+    updateWatermarkPreview();
+    clearResult('watermark-result', 'status-watermark');
+  }
+
+  function setWatermarkType(type) {
+    watermarkType = type;
+    document.getElementById('type-text').classList.toggle('active', type === 'text');
+    document.getElementById('type-image').classList.toggle('active', type === 'image');
+    document.getElementById('watermark-text-row').style.display = type === 'text' ? 'block' : 'none';
+    document.getElementById('watermark-logo-row').style.display = type === 'image' ? 'block' : 'none';
+    updateWatermarkPreview();
+    clearResult('watermark-result', 'status-watermark');
+  }
+
+  document.getElementById('watermark-logo-file').addEventListener('change', function () {
+    const file = this.files[0];
+    clearResult('watermark-result', 'status-watermark');
+    if (!file) { cachedLogoDataUrl = null; updateWatermarkPreview(); return; }
+    const reader = new FileReader();
+    reader.onload = e => { cachedLogoDataUrl = e.target.result; updateWatermarkPreview(); };
+    reader.readAsDataURL(file);
+  });
+
+  // Drives the live preview box so people can see exactly what "Visibility"
+  // and "Tilt" do instead of having to interpret raw numbers — and now
+  // shows the real uploaded logo when in image mode, not just placeholder text.
+  function updateWatermarkPreview() {
+    const text = document.getElementById('watermark-text').value || 'SAMPLE';
+    const color = document.getElementById('watermark-color').value;
+    const opacityPercent = parseInt(document.getElementById('watermark-opacity').value, 10);
+    const angle = parseInt(document.getElementById('watermark-angle').value, 10);
+    const position = document.getElementById('watermark-position').value;
+
+    document.getElementById('opacity-value').textContent = opacityPercent + '%';
+    document.getElementById('angle-value').textContent = angle + '°';
+
+    const box = document.getElementById('wm-preview-box');
+    const opacityFraction = opacityPercent / 100;
+    box.innerHTML = '';
+
+    const usingLogo = watermarkType === 'image';
+    if (usingLogo && !cachedLogoDataUrl) {
+      const hint = document.createElement('div');
+      hint.className = 'wm-preview-tile';
+      hint.style.opacity = 0.6;
+      hint.style.top = '50%';
+      hint.style.left = '50%';
+      hint.style.transform = 'translate(-50%, -50%)';
+      hint.style.fontSize = '13px';
+      hint.textContent = 'Upload a logo to preview';
+      box.appendChild(hint);
+      return;
+    }
+
+    function makeTile() {
+      if (usingLogo) {
+        const img = document.createElement('img');
+        img.src = cachedLogoDataUrl;
+        img.className = 'wm-preview-logo';
+        img.style.opacity = opacityFraction;
+        return img;
+      } else {
+        const el = document.createElement('div');
+        el.className = 'wm-preview-tile';
+        el.textContent = text;
+        el.style.opacity = opacityFraction;
+        el.style.color = color;
+        return el;
+      }
+    }
+
+    if (watermarkMode === 'single') {
+      const el = makeTile();
+      const positions = {
+        'bottom-right': { bottom: '12px', right: '14px' },
+        'bottom-left': { bottom: '12px', left: '14px' },
+        'top-right': { top: '20px', right: '14px' },
+        'top-left': { top: '20px', left: '14px' },
+        'center': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+      };
+      Object.assign(el.style, positions[position] || positions['bottom-right']);
+      box.appendChild(el);
+    } else {
+      // Tiled mode — build an actual dense grid, matching how the real
+      // backend covers the whole image, instead of a few scattered copies.
+      const boxRect = box.getBoundingClientRect();
+      const boxWidth = boxRect.width || 600;
+      const boxHeight = 160;
+
+      let tileW, tileH;
+      if (usingLogo) {
+        tileW = 50;
+        tileH = 50;
+      } else {
+        tileW = text.length * 10 + 24;
+        tileH = 34;
+      }
+      const angleRad = Math.abs(angle) * Math.PI / 180;
+      const rotatedW = Math.abs(tileW * Math.cos(angleRad)) + Math.abs(tileH * Math.sin(angleRad));
+      const rotatedH = Math.abs(tileW * Math.sin(angleRad)) + Math.abs(tileH * Math.cos(angleRad));
+
+      const spacingX = rotatedW + 24;
+      const spacingY = rotatedH + 24;
+
+      for (let y = -rotatedH; y < boxHeight + rotatedH; y += spacingY) {
+        for (let x = -rotatedW; x < boxWidth + rotatedW; x += spacingX) {
+          const el = makeTile();
+          el.style.transform = `rotate(${angle}deg)`;
+          el.style.top = y + 'px';
+          el.style.left = x + 'px';
+          if (!usingLogo) el.style.fontSize = '15px';
+          box.appendChild(el);
+        }
+      }
+    }
+  }
+
+  async function watermarkImage() {
+    const fileInput = document.getElementById('watermark-file');
+    const text = document.getElementById('watermark-text').value;
+    const color = document.getElementById('watermark-color').value;
+    const opacityPercent = parseInt(document.getElementById('watermark-opacity').value, 10);
+    const opacity = Math.round((opacityPercent / 100) * 255);  // backend expects 0-255
+    const position = document.getElementById('watermark-position').value;
+    const angle = document.getElementById('watermark-angle').value;
+    const logoFileInput = document.getElementById('watermark-logo-file');
+
+    if (!fileInput.files[0]) { showError('watermark-result', 'Please choose an image file first.'); return; }
+    if (watermarkType === 'text' && !text.trim()) { showError('watermark-result', 'Please enter watermark text.'); return; }
+    if (watermarkType === 'image' && !logoFileInput.files[0]) { showError('watermark-result', 'Please choose a logo image first.'); return; }
+
+    const originalFile = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', originalFile);
+    if (watermarkType === 'image') {
+      formData.append('logo_file', logoFileInput.files[0]);
+    }
+    const params = new URLSearchParams({
+      watermark_type: watermarkType, text, color, mode: watermarkMode, opacity, position, angle
+    });
+    setButtonLoading('watermark-btn', true);
+    try {
+      const res = await fetch(`/watermark-image?${params.toString()}`, { method: 'POST', body: formData });
+      if (!res.ok) { showStatus('status-watermark', false); showError('watermark-result', await extractErrorDetail(res)); return; }
+      const blob = await res.blob();
+      showStatus('status-watermark', true);
+      showResult('watermark-result', blob, 'watermarked.jpg', { originalFile });
+    } catch {
+      showStatus('status-watermark', false);
+      showError('watermark-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('watermark-btn', false);
+    }
+  }
+
+  async function generateQrCode() {
+    const text = document.getElementById('qr-text').value;
+    const size = document.getElementById('qr-size').value;
+    const errorCorrection = document.getElementById('qr-error-correction').value;
+    if (!text.trim()) { showError('qrcode-result', 'Please enter some text or a link first.'); return; }
+    setButtonLoading('qrcode-btn', true);
+    try {
+      const params = new URLSearchParams({ text, size, error_correction: errorCorrection });
+      const res = await fetch(`/generate-qr-code?${params.toString()}`, { method: 'POST' });
+      if (!res.ok) { showError('qrcode-result', await extractErrorDetail(res)); return; }
+      const blob = await res.blob();
+      if (activeResultUrls['qrcode-result']) URL.revokeObjectURL(activeResultUrls['qrcode-result']);
+      const url = URL.createObjectURL(blob);
+      activeResultUrls['qrcode-result'] = url;
+      document.getElementById('qrcode-result').innerHTML = `
+        <img src="${url}" alt="Generated QR code" style="display:block; margin-top:14px; border-radius:8px; max-width:100%; background:#fff; padding:10px;">
+        <a class="result-link" href="${url}" download="qrcode.png">Download qrcode.png</a>
+      `;
+    } catch {
+      showError('qrcode-result', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('qrcode-btn', false);
+    }
+  }
+
+
+  async function generateApiKey() {
+    const email = document.getElementById('apikey-email').value;
+    const errorBox = document.getElementById('apikey-error');
+    const keyBox = document.getElementById('apikey-box');
+    errorBox.innerHTML = '';
+    setButtonLoading('apikey-btn', true, 'Generating...');
+    try {
+      const res = await fetch(`/generate-key?email=${encodeURIComponent(email)}`, { method: 'POST' });
+      if (!res.ok) { showError('apikey-error', await extractErrorDetail(res)); return; }
+      const data = await res.json();
+      document.getElementById('apikey-value').textContent = data.api_key;
+      keyBox.style.display = 'block';
+    } catch {
+      showError('apikey-error', 'Network error. Please try again.');
+    } finally {
+      setButtonLoading('apikey-btn', false);
+    }
+  }
+
+  function copyApiKey() {
+    const key = document.getElementById('apikey-value').textContent;
+    navigator.clipboard.writeText(key);
+    const btn = document.getElementById('copy-btn');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }
+
+  updateWatermarkPreview();
+
+  // Clear old results the moment any setting changes, across every tool.
+  wireClearOnChange(['compress-file', 'compress-quality'], 'compress-result', 'status-compress');
+  wireClearOnChange(['docpdf-file'], 'docpdf-result', 'status-docpdf');
+  wireClearOnChange(['convert-file'], 'convert-result', 'status-convert');
+  wireClearOnChange(['watermark-file', 'watermark-text', 'watermark-color', 'watermark-position', 'watermark-angle', 'watermark-opacity'], 'watermark-result', 'status-watermark');
+  wireClearOnChange(['qr-text', 'qr-size', 'qr-error-correction'], 'qrcode-result', null);
 </script>
+
 </body>
 </html>
